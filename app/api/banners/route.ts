@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { DB_MODE } from '@/lib/db';
 import fs from 'fs';
 import path from 'path';
+
+// 캐싱 방지 - 관리자에서 변경한 내용 즉시 반영
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface Banner {
   id: string;
@@ -27,27 +30,8 @@ function readBannersJson(): Banner[] {
 
 // GET - 활성화된 배너 목록 조회
 export async function GET() {
+  // 외부 DB 우선 시도, 실패시 로컬 fallback
   try {
-    if (DB_MODE === 'local') {
-      const banners = readBannersJson();
-      const now = new Date();
-
-      const activeBanners = banners.filter(banner => {
-        if (!banner.isActive) return false;
-
-        const startDate = banner.startDate ? new Date(banner.startDate) : null;
-        const endDate = banner.endDate ? new Date(banner.endDate) : null;
-
-        if (!startDate && !endDate) return true;
-        if (startDate && !endDate) return startDate <= now;
-        if (!startDate && endDate) return endDate >= now;
-        return startDate! <= now && endDate! >= now;
-      });
-
-      activeBanners.sort((a, b) => a.sortOrder - b.sortOrder);
-      return NextResponse.json(activeBanners);
-    }
-
     const now = new Date();
 
     const banners = await prisma.banner.findMany({
@@ -83,7 +67,29 @@ export async function GET() {
 
     return NextResponse.json(banners);
   } catch (error) {
-    console.error('Failed to fetch banners:', error);
-    return NextResponse.json([], { status: 200 });
+    console.error('Failed to fetch banners from DB, falling back to local:', error);
+    // 외부 DB 실패시 로컬 데이터 반환
+    try {
+      const banners = readBannersJson();
+      const now = new Date();
+
+      const activeBanners = banners.filter(banner => {
+        if (!banner.isActive) return false;
+
+        const startDate = banner.startDate ? new Date(banner.startDate) : null;
+        const endDate = banner.endDate ? new Date(banner.endDate) : null;
+
+        if (!startDate && !endDate) return true;
+        if (startDate && !endDate) return startDate <= now;
+        if (!startDate && endDate) return endDate >= now;
+        return startDate! <= now && endDate! >= now;
+      });
+
+      activeBanners.sort((a, b) => a.sortOrder - b.sortOrder);
+      return NextResponse.json(activeBanners);
+    } catch (localError) {
+      console.error('Error fetching from local:', localError);
+      return NextResponse.json([]);
+    }
   }
 }

@@ -12,22 +12,38 @@ interface FAQ {
   sortOrder: number;
 }
 
+interface CompanyInfo {
+  phone?: string;
+  kakaoChannelUrl?: string;
+}
+
 export default function FAQPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({});
+
+  const phoneNumber = companyInfo.phone || process.env.NEXT_PUBLIC_PHONE_NUMBER || '1588-0000';
+  const kakaoUrl = companyInfo.kakaoChannelUrl || process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || '#';
 
   useEffect(() => {
-    fetchFAQs();
+    fetchData();
   }, []);
 
-  const fetchFAQs = async () => {
+  const fetchData = async () => {
     try {
-      const res = await fetch('/api/faq');
-      const data = await res.json();
-      setFaqs(data);
+      const [faqRes, companyRes] = await Promise.all([
+        fetch('/api/faq'),
+        fetch('/api/company-info'),
+      ]);
+      const faqData = await faqRes.json();
+      setFaqs(faqData);
+      if (companyRes.ok) {
+        const companyData = await companyRes.json();
+        setCompanyInfo(companyData);
+      }
     } catch (error) {
-      console.error('Failed to fetch FAQs:', error);
+      console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
     }
@@ -108,13 +124,13 @@ export default function FAQPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href={`tel:${process.env.NEXT_PUBLIC_PHONE_NUMBER || '1588-0000'}`}
+                href={`tel:${phoneNumber}`}
                 className="inline-flex items-center justify-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors"
               >
                 전화 상담하기
               </a>
               <a
-                href={process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || '#'}
+                href={kakaoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 bg-[#FEE500] text-[#000000] px-6 py-3 rounded-lg font-medium hover:bg-[#FEE500]/90 transition-colors"

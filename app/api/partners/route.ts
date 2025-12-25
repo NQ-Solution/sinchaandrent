@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { DB_MODE } from '@/lib/db';
 import fs from 'fs';
 import path from 'path';
+
+// 캐싱 방지 - 관리자에서 변경한 내용 즉시 반영
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface Partner {
   id: string;
@@ -32,14 +35,8 @@ function readPartnersJson(): Partner[] {
 
 // GET - 활성화된 제휴사 목록 조회
 export async function GET() {
+  // 외부 DB 우선 시도, 실패시 로컬 fallback
   try {
-    if (DB_MODE === 'local') {
-      const partners = readPartnersJson()
-        .filter(p => p.isActive)
-        .sort((a, b) => a.sortOrder - b.sortOrder);
-      return NextResponse.json(partners);
-    }
-
     const partners = await prisma.partner.findMany({
       where: {
         isActive: true,
@@ -51,15 +48,16 @@ export async function GET() {
 
     return NextResponse.json(partners);
   } catch (error) {
-    console.error('Failed to fetch partners:', error);
-    // Fallback to local
+    console.error('Failed to fetch partners from DB, falling back to local:', error);
+    // 외부 DB 실패시 로컬 데이터 반환
     try {
       const partners = readPartnersJson()
         .filter(p => p.isActive)
         .sort((a, b) => a.sortOrder - b.sortOrder);
       return NextResponse.json(partners);
-    } catch {
-      return NextResponse.json([], { status: 200 });
+    } catch (localError) {
+      console.error('Error fetching from local:', localError);
+      return NextResponse.json([]);
     }
   }
 }

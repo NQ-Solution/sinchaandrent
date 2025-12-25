@@ -81,28 +81,76 @@ async function getCompanyInfo(): Promise<CompanyInfo> {
   }
 }
 
+interface FAQItem {
+  id: string;
+  question: string;
+  answer: string;
+}
 
-
-// FAQ 데이터
-const FAQ_PREVIEW = [
+// 기본 FAQ 데이터 (DB 조회 실패 시 fallback)
+const DEFAULT_FAQ_PREVIEW: FAQItem[] = [
   {
+    id: 'default-1',
     question: '장기렌트와 리스의 차이점은 무엇인가요?',
     answer: '장기렌트는 렌트사 소유 차량을 빌려 사용하는 방식으로, 보험료/자동차세/정비비가 모두 월 렌트료에 포함됩니다. 리스는 금융사가 차량을 구매하고 사용자가 이용료를 내는 방식입니다.',
   },
   {
+    id: 'default-2',
     question: '초기비용이 정말 0원인가요?',
     answer: '네, 맞습니다. 신차 구매 시 필요한 취득세, 등록세, 공채비용, 번호판 비용 등 초기비용이 전혀 없습니다.',
   },
   {
+    id: 'default-3',
     question: '신용등급에 영향이 있나요?',
     answer: '장기렌트는 대출이 아니기 때문에 신용등급에 영향을 주지 않습니다. 할부 구매나 리스와 달리 부채로 잡히지 않습니다.',
   },
 ];
 
+async function getFaqPreview(): Promise<FAQItem[]> {
+  try {
+    if (DB_MODE === 'local') {
+      const faqs = localDb.faqs?.findMany?.({
+        where: { isActive: true },
+        orderBy: { sortOrder: 'asc' },
+      }) || [];
+      return faqs.slice(0, 3).map((faq: { id: string; question: string; answer: string }) => ({
+        id: faq.id,
+        question: faq.question,
+        answer: faq.answer,
+      }));
+    }
+
+    const faqs = await prisma.fAQ.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' },
+      take: 3,
+      select: {
+        id: true,
+        question: true,
+        answer: true,
+      },
+    });
+
+    if (faqs.length === 0) {
+      return DEFAULT_FAQ_PREVIEW;
+    }
+
+    return faqs.map((faq) => ({
+      id: faq.id,
+      question: faq.question,
+      answer: faq.answer,
+    }));
+  } catch (error) {
+    console.error('Failed to fetch FAQ preview:', error);
+    return DEFAULT_FAQ_PREVIEW;
+  }
+}
+
 export default async function HomePage() {
-  const [popularVehicles, companyInfo] = await Promise.all([
+  const [popularVehicles, companyInfo, faqPreview] = await Promise.all([
     getPopularVehicles(),
-    getCompanyInfo()
+    getCompanyInfo(),
+    getFaqPreview(),
   ]);
   const phoneNumber = companyInfo.phone || process.env.NEXT_PUBLIC_PHONE_NUMBER || '1588-0000';
   const kakaoUrl = companyInfo.kakaoChannelUrl || process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || '#';
@@ -369,9 +417,9 @@ export default async function HomePage() {
             </div>
 
             <div className="space-y-3 sm:space-y-4">
-              {FAQ_PREVIEW.map((faq, index) => (
+              {faqPreview.map((faq) => (
                 <div
-                  key={index}
+                  key={faq.id}
                   className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm"
                 >
                   <div className="flex items-start gap-3 sm:gap-4">

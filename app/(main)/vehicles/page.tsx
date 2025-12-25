@@ -246,6 +246,11 @@ function CompareBar({ vehicles, onRemove, onClear }: {
   );
 }
 
+interface CompanyInfo {
+  phone?: string;
+  kakaoChannelUrl?: string;
+}
+
 function VehiclesContent() {
   const searchParams = useSearchParams();
 
@@ -265,21 +270,27 @@ function VehiclesContent() {
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({});
 
-  const phoneNumber = process.env.NEXT_PUBLIC_PHONE_NUMBER || '1588-0000';
-  const kakaoUrl = process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || '#';
+  const phoneNumber = companyInfo.phone || process.env.NEXT_PUBLIC_PHONE_NUMBER || '1588-0000';
+  const kakaoUrl = companyInfo.kakaoChannelUrl || process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || '#';
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [brandsRes, vehiclesRes] = await Promise.all([
+        const [brandsRes, vehiclesRes, companyRes] = await Promise.all([
           fetch('/api/brands'),
           fetch('/api/vehicles'),
+          fetch('/api/company-info'),
         ]);
         const brandsData = await brandsRes.json();
         const vehiclesData = await vehiclesRes.json();
         setBrands(brandsData);
         setVehicles(vehiclesData);
+        if (companyRes.ok) {
+          const companyData = await companyRes.json();
+          setCompanyInfo(companyData);
+        }
       } catch (error) {
         console.error('Failed to fetch data:', error);
       } finally {

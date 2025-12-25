@@ -1,15 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { localDb, DB_MODE } from '@/lib/db';
+import { localDb } from '@/lib/db';
+
+// 캐싱 방지 - 관리자에서 변경한 내용 즉시 반영
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params;
+  const { id } = await params;
 
-    if (DB_MODE === 'local') {
+  // 외부 DB 우선 시도, 실패시 로컬 fallback
+  try {
+    const vehicle = await prisma.vehicle.findUnique({
+      where: { id },
+      include: {
+        brand: true,
+        trims: {
+          orderBy: { sortOrder: 'asc' },
+        },
+        colors: {
+          orderBy: { sortOrder: 'asc' },
+        },
+        options: {
+          orderBy: { sortOrder: 'asc' },
+        },
+      },
+    });
+
+    if (!vehicle) {
+      return NextResponse.json(
+        { error: 'Vehicle not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(vehicle);
+  } catch (error) {
+    console.error('Error fetching vehicle from DB, falling back to local:', error);
+    // 외부 DB 실패시 로컬 데이터 반환
+    try {
       const vehicle = localDb.vehicles.findUnique({
         where: { id },
         include: { brand: true },
@@ -44,37 +76,12 @@ export async function GET(
         colors,
         options,
       });
-    }
-
-    const vehicle = await prisma.vehicle.findUnique({
-      where: { id },
-      include: {
-        brand: true,
-        trims: {
-          orderBy: { sortOrder: 'asc' },
-        },
-        colors: {
-          orderBy: { sortOrder: 'asc' },
-        },
-        options: {
-          orderBy: { sortOrder: 'asc' },
-        },
-      },
-    });
-
-    if (!vehicle) {
+    } catch (localError) {
+      console.error('Error fetching from local:', localError);
       return NextResponse.json(
-        { error: 'Vehicle not found' },
-        { status: 404 }
+        { error: 'Failed to fetch vehicle' },
+        { status: 500 }
       );
     }
-
-    return NextResponse.json(vehicle);
-  } catch (error) {
-    console.error('Error fetching vehicle:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch vehicle' },
-      { status: 500 }
-    );
   }
 }

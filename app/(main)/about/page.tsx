@@ -4,10 +4,49 @@ import { Target, Eye, Heart, Shield, Clock, Award, Phone, Car, TrendingUp, Check
 import { KakaoIcon } from '@/components/icons/KakaoIcon';
 import PartnerSectionByCategory from '@/components/PartnerSectionByCategory';
 import FAQSection from '@/components/FAQSection';
+import prisma from '@/lib/prisma';
+import { localDb, DB_MODE } from '@/lib/db';
 
-export default function AboutPage() {
-  const phoneNumber = process.env.NEXT_PUBLIC_PHONE_NUMBER || '1588-0000';
-  const kakaoUrl = process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || '#';
+export const dynamic = 'force-dynamic';
+
+interface CompanyInfo {
+  phone?: string;
+  kakaoChannelUrl?: string;
+}
+
+async function getCompanyInfo(): Promise<CompanyInfo> {
+  try {
+    if (DB_MODE === 'local') {
+      const settings = localDb.settings.findMany();
+      const result: CompanyInfo = {};
+      settings.forEach((s: { key: string; value: string }) => {
+        if (s.key === 'phone') result.phone = s.value;
+        if (s.key === 'kakaoChannelUrl') result.kakaoChannelUrl = s.value;
+      });
+      return result;
+    }
+
+    const settings = await prisma.setting.findMany({
+      where: {
+        key: { in: ['phone', 'kakaoChannelUrl'] }
+      }
+    });
+    const result: CompanyInfo = {};
+    settings.forEach((s) => {
+      if (s.key === 'phone') result.phone = s.value;
+      if (s.key === 'kakaoChannelUrl') result.kakaoChannelUrl = s.value;
+    });
+    return result;
+  } catch (error) {
+    console.error('Failed to fetch company info:', error);
+    return {};
+  }
+}
+
+export default async function AboutPage() {
+  const companyInfo = await getCompanyInfo();
+  const phoneNumber = companyInfo.phone || process.env.NEXT_PUBLIC_PHONE_NUMBER || '1588-0000';
+  const kakaoUrl = companyInfo.kakaoChannelUrl || process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || '#';
 
   return (
     <div className="pt-16 md:pt-20">
