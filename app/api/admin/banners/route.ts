@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { DB_MODE } from '@/lib/db';
 import fs from 'fs';
 import path from 'path';
+
+// 캐싱 방지
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface Banner {
   id: string;
@@ -40,6 +45,11 @@ function writeBannersJson(banners: Banner[]) {
 
 // GET - 모든 배너 조회 (관리자용)
 export async function GET() {
+  const session = await auth();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     if (DB_MODE === 'local') {
       const banners = readBannersJson();
@@ -62,6 +72,11 @@ export async function GET() {
 
 // POST - 새 배너 생성
 export async function POST(request: NextRequest) {
+  const session = await auth();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const data = await request.json();
 

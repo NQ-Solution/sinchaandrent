@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { DB_MODE } from '@/lib/db';
 import fs from 'fs';
 import path from 'path';
+
+// 캐싱 방지
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 function getCompanyInfoFilePath() {
   return path.join(process.cwd(), 'data', 'company-info.json');
@@ -27,6 +32,11 @@ function writeCompanyInfoJson(info: Record<string, string>) {
 
 // GET - 모든 사이트 설정 조회 (관리자용)
 export async function GET() {
+  const session = await auth();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     if (DB_MODE === 'local') {
       const info = readCompanyInfoJson();
@@ -50,6 +60,11 @@ export async function GET() {
 
 // PUT - 사이트 설정 저장/업데이트 (upsert)
 export async function PUT(request: NextRequest) {
+  const session = await auth();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const data = await request.json();
 

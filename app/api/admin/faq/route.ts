@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { localDb, DB_MODE } from '@/lib/db';
 
+// 캐싱 방지
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // GET - 모든 FAQ 조회 (관리자용 - 비활성 포함)
 export async function GET() {
+  const session = await auth();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     if (DB_MODE === 'local') {
       const faqs = localDb.faqs.findMany({
@@ -29,6 +39,11 @@ export async function GET() {
 
 // POST - 새 FAQ 생성
 export async function POST(request: NextRequest) {
+  const session = await auth();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { question, answer, isActive, sortOrder } = body;

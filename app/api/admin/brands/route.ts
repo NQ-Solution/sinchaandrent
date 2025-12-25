@@ -4,6 +4,10 @@ import prisma from '@/lib/prisma';
 import { localDb, DB_MODE } from '@/lib/db';
 import { BrandSchema, validateRequest } from '@/lib/validations';
 
+// 캐싱 방지
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   const session = await auth();
   if (!session) {
