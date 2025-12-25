@@ -2,6 +2,9 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 
+// 동적 렌더링 강제 (auth에서 headers 사용)
+export const dynamic = 'force-dynamic';
+
 export default async function AdminLayout({
   children,
 }: {
