@@ -14,12 +14,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         try {
+          console.log('[Auth] Starting authorization...');
+          console.log('[Auth] DB_MODE:', DB_MODE);
+
           if (!credentials?.email || !credentials?.password) {
+            console.log('[Auth] Missing credentials');
             return null;
           }
 
           const email = credentials.email as string;
           const password = credentials.password as string;
+          console.log('[Auth] Email:', email);
 
           // 로컬 모드: JSON 파일에서 인증
           if (DB_MODE === 'local') {
@@ -39,23 +44,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           // DB 모드: PostgreSQL에서 인증
           try {
+            console.log('[Auth] Querying database for admin...');
             const admin = await prisma.admin.findUnique({
               where: { email },
             });
+            console.log('[Auth] Admin found:', admin ? 'Yes' : 'No');
 
             if (admin) {
               const isPasswordValid = await bcrypt.compare(password, admin.password);
+              console.log('[Auth] Password valid:', isPasswordValid);
               if (isPasswordValid) {
+                console.log('[Auth] Login successful!');
                 return {
                   id: admin.id,
                   email: admin.email,
                   name: admin.name,
                 };
               }
+              console.log('[Auth] Password mismatch');
               return null;
             }
+            console.log('[Auth] Admin not found in database');
           } catch (dbError) {
-            console.error('DB not available, trying local auth:', dbError);
+            console.error('[Auth] DB error:', dbError);
             // DB 실패 시 로컬 인증 시도
             const admin = localDb.admins.findUnique({ where: { email } });
             if (admin) {
