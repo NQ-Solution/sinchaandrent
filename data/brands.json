@@ -1,0 +1,299 @@
+[
+  {
+    "id": "brand-hyundai",
+    "nameKr": "현대",
+    "nameEn": "Hyundai",
+    "logo": null,
+    "isDomestic": true,
+    "isActive": true,
+    "sortOrder": 1
+  },
+  {
+    "id": "brand-kia",
+    "nameKr": "기아",
+    "nameEn": "Kia",
+    "logo": null,
+    "isDomestic": true,
+    "isActive": true,
+    "sortOrder": 2
+  },
+  {
+    "id": "brand-genesis",
+    "nameKr": "제네시스",
+    "nameEn": "Genesis",
+    "logo": null,
+    "isDomestic": true,
+    "isActive": true,
+    "sortOrder": 3
+  },
+  {
+    "id": "brand-chevrolet-kr",
+    "nameKr": "쉐보레",
+    "nameEn": "Chevrolet",
+    "logo": null,
+    "isDomestic": true,
+    "isActive": true,
+    "sortOrder": 4
+  },
+  {
+    "id": "brand-renault",
+    "nameKr": "르노코리아",
+    "nameEn": "Renault Korea",
+    "logo": null,
+    "isDomestic": true,
+    "isActive": true,
+    "sortOrder": 5
+  },
+  {
+    "id": "brand-kg",
+    "nameKr": "KG모빌리티",
+    "nameEn": "KG Mobility",
+    "logo": null,
+    "isDomestic": true,
+    "isActive": true,
+    "sortOrder": 6
+  },
+  {
+    "id": "brand-benz",
+    "nameKr": "벤츠",
+    "nameEn": "Mercedes-Benz",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "id": "brand-bmw",
+    "nameKr": "BMW",
+    "nameEn": "BMW",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 11
+  },
+  {
+    "id": "brand-audi",
+    "nameKr": "아우디",
+    "nameEn": "Audi",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 12
+  },
+  {
+    "id": "brand-volkswagen",
+    "nameKr": "폭스바겐",
+    "nameEn": "Volkswagen",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 13
+  },
+  {
+    "id": "brand-volvo",
+    "nameKr": "볼보",
+    "nameEn": "Volvo",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 14
+  },
+  {
+    "id": "brand-porsche",
+    "nameKr": "포르쉐",
+    "nameEn": "Porsche",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 15
+  },
+  {
+    "id": "brand-lexus",
+    "nameKr": "렉서스",
+    "nameEn": "Lexus",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 16
+  },
+  {
+    "id": "brand-toyota",
+    "nameKr": "토요타",
+    "nameEn": "Toyota",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 17
+  },
+  {
+    "id": "brand-honda",
+    "nameKr": "혼다",
+    "nameEn": "Honda",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 18
+  },
+  {
+    "id": "brand-tesla",
+    "nameKr": "테슬라",
+    "nameEn": "Tesla",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 19
+  },
+  {
+    "id": "brand-jeep",
+    "nameKr": "지프",
+    "nameEn": "Jeep",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "id": "brand-landrover",
+    "nameKr": "랜드로버",
+    "nameEn": "Land Rover",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 21
+  },
+  {
+    "id": "brand-jaguar",
+    "nameKr": "재규어",
+    "nameEn": "Jaguar",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 22
+  },
+  {
+    "id": "brand-mini",
+    "nameKr": "미니",
+    "nameEn": "Mini",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 23
+  },
+  {
+    "id": "brand-ford",
+    "nameKr": "포드",
+    "nameEn": "Ford",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 24
+  },
+  {
+    "id": "brand-lincoln",
+    "nameKr": "링컨",
+    "nameEn": "Lincoln",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 25
+  },
+  {
+    "id": "brand-cadillac",
+    "nameKr": "캐딜락",
+    "nameEn": "Cadillac",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 26
+  },
+  {
+    "id": "brand-peugeot",
+    "nameKr": "푸조",
+    "nameEn": "Peugeot",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 27
+  },
+  {
+    "id": "brand-citroen",
+    "nameKr": "시트로엥",
+    "nameEn": "Citroen",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 28
+  },
+  {
+    "id": "brand-nissan",
+    "nameKr": "닛산",
+    "nameEn": "Nissan",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 29
+  },
+  {
+    "id": "brand-infiniti",
+    "nameKr": "인피니티",
+    "nameEn": "Infiniti",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 30
+  },
+  {
+    "id": "brand-maserati",
+    "nameKr": "마세라티",
+    "nameEn": "Maserati",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 31
+  },
+  {
+    "id": "brand-bentley",
+    "nameKr": "벤틀리",
+    "nameEn": "Bentley",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 32
+  },
+  {
+    "id": "brand-rollsroyce",
+    "nameKr": "롤스로이스",
+    "nameEn": "Rolls-Royce",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 33
+  },
+  {
+    "id": "brand-ferrari",
+    "nameKr": "페라리",
+    "nameEn": "Ferrari",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 34
+  },
+  {
+    "id": "brand-lamborghini",
+    "nameKr": "람보르기니",
+    "nameEn": "Lamborghini",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 35
+  },
+  {
+    "id": "brand-alfaromeo",
+    "nameKr": "알파로메오",
+    "nameEn": "Alfa Romeo",
+    "logo": null,
+    "isDomestic": false,
+    "isActive": true,
+    "sortOrder": 36
+  }
+]

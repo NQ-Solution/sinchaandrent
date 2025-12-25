@@ -1,0 +1,20 @@
+[
+  {
+    "id": "option-1766661370235-jlyegkkky",
+    "vehicleId": "vehicle-avante",
+    "name": "옵션 ",
+    "price": 1200000,
+    "description": "",
+    "category": "편의",
+    "sortOrder": 999
+  },
+  {
+    "id": "option-1766677286439-hpn2ztpba",
+    "vehicleId": "hdsed-테스트차량등록",
+    "name": "썬루프 ",
+    "price": 1000000,
+    "description": "테스트",
+    "category": "편의",
+    "sortOrder": 999
+  }
+]

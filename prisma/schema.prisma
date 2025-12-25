@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 브랜드
+model Brand {
+  id         String    @id @default(cuid())
+  name       String    // 대표 이름
+  nameKr     String    // 한글명
+  nameEn     String?   // 영문명
+  logo       String?   // 로고 (base64 또는 URL)
+  isDomestic Boolean   @default(true) // true: 국산, false: 수입
+  sortOrder  Int       @default(0)
+  isActive   Boolean   @default(true)
+  vehicles   Vehicle[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+// 차량
+model Vehicle {
+  id          String          @id @default(cuid())
+  brandId     String
+  brand       Brand           @relation(fields: [brandId], references: [id])
+  name        String
+  category    VehicleCategory
+  fuelTypes   String[]        // 연료 타입 배열 (복수 선택 가능: 가솔린, 디젤 등)
+  driveTypes  String[]        // 구동방식 배열 (전륜, 후륜, 4륜 등 복수 가능)
+  seatingCapacityMin Int?     // 최소 승차 인원 (예: 5)
+  seatingCapacityMax Int?     // 최대 승차 인원 (예: 7)
+
+  // 가격 (관리자 직접 입력)
+  basePrice   Int // 기본 차량가 (참고용)
+
+  // 보증금 0% 렌트 가격
+  rentPrice60_0   Int?  // 60개월 보증금 0%
+  rentPrice48_0   Int?  // 48개월 보증금 0%
+  rentPrice36_0   Int?  // 36개월 보증금 0%
+  rentPrice24_0   Int?  // 24개월 보증금 0%
+
+  // 보증금 25% 렌트 가격
+  rentPrice60_25  Int?  // 60개월 보증금 25%
+  rentPrice48_25  Int?  // 48개월 보증금 25%
+  rentPrice36_25  Int?  // 36개월 보증금 25%
+  rentPrice24_25  Int?  // 24개월 보증금 25%
+
+  // 보증금 50% 렌트 가격
+  rentPrice60_50  Int?  // 60개월 보증금 50%
+  rentPrice48_50  Int?  // 48개월 보증금 50%
+  rentPrice36_50  Int?  // 36개월 보증금 50%
+  rentPrice24_50  Int?  // 24개월 보증금 50%
+
+  // 이미지 (base64 또는 URL)
+  thumbnail String? // 대표 이미지
+  images    String[] // 갤러리 이미지
+
+  // 상태
+  isPopular Boolean @default(false)
+  isNew     Boolean @default(false)
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  // 관계
+  trims   Trim[]
+  colors  Color[]
+  options Option[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([brandId])
+  @@index([isActive, isPopular])
+}
+
+enum VehicleCategory {
+  SEDAN
+  SUV
+  TRUCK
+  VAN
+  EV
+}
+
+// FuelType은 더 이상 enum이 아닌 String 배열로 저장됨
+// 가능한 값: GASOLINE, DIESEL, HYBRID, EV, LPG
+
+// 트림
+model Trim {
+  id          String  @id @default(cuid())
+  vehicleId   String
+  vehicle     Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  price       Int     @default(0) // 추가 가격
+  sortOrder   Int     @default(0)
+
+  @@index([vehicleId])
+}
+
+// 색상
+model Color {
+  id        String    @id @default(cuid())
+  vehicleId String
+  vehicle   Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  type      ColorType
+  name      String
+  hexCode   String // #FFFFFF
+  price     Int       @default(0) // 추가 가격
+  sortOrder Int       @default(0)
+
+  @@index([vehicleId])
+}
+
+enum ColorType {
+  EXTERIOR
+  INTERIOR
+}
+
+// 옵션
+model Option {
+  id          String  @id @default(cuid())
+  vehicleId   String
+  vehicle     Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  price       Int     @default(0) // 추가 가격
+  category    String? // 안전, 편의, 외관 등
+  sortOrder   Int     @default(0)
+
+  @@index([vehicleId])
+}
+
+// FAQ
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 설정
+model Setting {
+  id          String  @id @default(cuid())
+  key         String  @unique
+  value       String
+  description String?
+}
+
+// 관리자
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String // hashed
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 이벤트 배너
+model Banner {
+  id              String    @id @default(cuid())
+  title           String    // 배너 제목
+  subtitle        String?   // 배너 부제목
+  image           String?   // 배너 이미지 (base64 또는 URL)
+  mobileImage     String?   // 모바일용 이미지 (없으면 image 사용)
+  link            String?   // 클릭 시 이동할 링크
+  linkText        String?   // 링크 버튼 텍스트
+  description     String?   // 배너 설명 텍스트
+  backgroundColor String?   // 배경색 (텍스트 배너용)
+  textColor       String?   // 텍스트 색상 (텍스트 배너용)
+  startDate       DateTime? // 노출 시작일
+  endDate         DateTime? // 노출 종료일
+  sortOrder       Int       @default(0)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// 제휴사 (파트너)
+model Partner {
+  id        String   @id @default(cuid())
+  name      String   // 제휴사명 (예: 산은캐피탈)
+  logo      String?  // 로고 이미지
+  link      String?  // 제휴사 링크
+  category  String?  // 카테고리 (캐피탈, 카드 등)
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 사업자 정보 (대출모집법인 정보)
+model CompanyInfo {
+  id          String   @id @default(cuid())
+  key         String   @unique // 설정 키
+  value       String   // 값
+  description String?  // 설명
+  updatedAt   DateTime @updatedAt
+}

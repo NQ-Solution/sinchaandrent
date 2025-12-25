@@ -1,0 +1,110 @@
+[
+  {
+    "id": "color-1765161176534-xzee2csy7",
+    "vehicleId": "vehicle-avante",
+    "type": "EXTERIOR",
+    "name": "테스트 컬러1 ",
+    "hexCode": "#904747",
+    "price": 10000,
+    "sortOrder": 1
+  },
+  {
+    "id": "color-1765161176540-8ng5gwy5w",
+    "vehicleId": "vehicle-avante",
+    "type": "INTERIOR",
+    "name": "테스트 컬러3",
+    "hexCode": "#000000",
+    "price": 10000,
+    "sortOrder": 1
+  },
+  {
+    "id": "color-1766661521136-if1v2yorl",
+    "vehicleId": "vehicle-avante",
+    "type": "EXTERIOR",
+    "name": "테스트 커러2",
+    "hexCode": "#000000",
+    "price": 0,
+    "sortOrder": 999
+  },
+  {
+    "id": "color-1766661521154-encapsbji",
+    "vehicleId": "vehicle-avante",
+    "type": "INTERIOR",
+    "name": "테스트 컬러4",
+    "hexCode": "#a74444",
+    "price": 0,
+    "sortOrder": 999
+  },
+  {
+    "id": "color-1766675087541-dt8soc8is",
+    "vehicleId": "hdsed-테스트차량등록",
+    "type": "EXTERIOR",
+    "name": "테스트 1",
+    "hexCode": "#000000",
+    "price": 0,
+    "sortOrder": 999
+  },
+  {
+    "id": "color-1766675087551-x2bwhdxlt",
+    "vehicleId": "hdsed-테스트차량등록",
+    "type": "EXTERIOR",
+    "name": "테스트 2",
+    "hexCode": "#904141",
+    "price": 1000,
+    "sortOrder": 999
+  },
+  {
+    "id": "color-1766675087559-katja3t69",
+    "vehicleId": "hdsed-테스트차량등록",
+    "type": "EXTERIOR",
+    "name": "테스트 3",
+    "hexCode": "#1c3eca",
+    "price": 0,
+    "sortOrder": 999
+  },
+  {
+    "id": "color-1766675087568-fgnuwnwr5",
+    "vehicleId": "hdsed-테스트차량등록",
+    "type": "EXTERIOR",
+    "name": "테스트 4 ",
+    "hexCode": "#7d0808",
+    "price": 100000,
+    "sortOrder": 999
+  },
+  {
+    "id": "color-1766675087576-f1ztrmmgw",
+    "vehicleId": "hdsed-테스트차량등록",
+    "type": "INTERIOR",
+    "name": "블랙",
+    "hexCode": "#000000",
+    "price": 0,
+    "sortOrder": 999
+  },
+  {
+    "id": "color-1766675087584-p32ds11fd",
+    "vehicleId": "hdsed-테스트차량등록",
+    "type": "INTERIOR",
+    "name": "테스트",
+    "hexCode": "#9b4646",
+    "price": 0,
+    "sortOrder": 999
+  },
+  {
+    "id": "color-1766675087593-ljd6fajyx",
+    "vehicleId": "hdsed-테스트차량등록",
+    "type": "INTERIOR",
+    "name": "블루계열",
+    "hexCode": "#3d357e",
+    "price": 0,
+    "sortOrder": 999
+  },
+  {
+    "id": "color-1766675087602-sekm3mauh",
+    "vehicleId": "hdsed-테스트차량등록",
+    "type": "INTERIOR",
+    "name": "똥색",
+    "hexCode": "#380000",
+    "price": 10000,
+    "sortOrder": 999
+  }
+]

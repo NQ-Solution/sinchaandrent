@@ -1,0 +1,34 @@
+[
+  {
+    "id": "trim-1766661311808-h5uv31l1z",
+    "vehicleId": "vehicle-avante",
+    "name": "테스트1 ",
+    "price": 300000,
+    "description": "",
+    "sortOrder": 999
+  },
+  {
+    "id": "trim-1766661370196-z4v4zfm92",
+    "vehicleId": "vehicle-avante",
+    "name": "테스트 2 ",
+    "price": 500000,
+    "description": "테스트 ",
+    "sortOrder": 999
+  },
+  {
+    "id": "trim-1766674880562-rh80ducuj",
+    "vehicleId": "hdsed-테스트차량등록",
+    "name": "테스트 트림 ",
+    "price": 0,
+    "description": "테스트",
+    "sortOrder": 999
+  },
+  {
+    "id": "trim-1766674880575-hv27w5y84",
+    "vehicleId": "hdsed-테스트차량등록",
+    "name": "테스트 트림2 ",
+    "price": 100000,
+    "description": "테스트 2",
+    "sortOrder": 999
+  }
+]
