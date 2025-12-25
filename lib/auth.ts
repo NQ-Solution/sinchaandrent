@@ -99,4 +99,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: 'jwt',
   },
   trustHost: true,
+  useSecureCookies: process.env.NODE_ENV === 'production',
 });
