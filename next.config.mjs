@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // standalone 빌드에 data 폴더 포함 (로컬 DB 모드용)
+  outputFileTracingIncludes: {
+    '/*': ['./data/**/*'],
+  },
   images: {
     remotePatterns: [
       // 자체 도메인
