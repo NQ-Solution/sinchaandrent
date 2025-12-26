@@ -20,6 +20,18 @@ export async function GET(
         brand: true,
         trims: {
           orderBy: { sortOrder: 'asc' },
+          include: {
+            colors: {
+              include: {
+                color: true,
+              },
+            },
+            options: {
+              include: {
+                option: true,
+              },
+            },
+          },
         },
         colors: {
           orderBy: { sortOrder: 'asc' },
@@ -37,7 +49,26 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(vehicle);
+    // 트림별 색상과 옵션 정보를 포맷팅
+    const formattedVehicle = {
+      ...vehicle,
+      trims: vehicle.trims.map(trim => ({
+        ...trim,
+        availableColors: trim.colors.map(tc => ({
+          ...tc.color,
+          trimColorId: tc.id,
+        })),
+        availableOptions: trim.options.map(to => ({
+          ...to.option,
+          trimOptionId: to.id,
+          isIncluded: to.isIncluded,
+        })),
+        colors: undefined,
+        options: undefined,
+      })),
+    };
+
+    return NextResponse.json(formattedVehicle);
   } catch (error) {
     console.error('Error fetching vehicle from DB, falling back to local:', error);
     // 외부 DB 실패시 로컬 데이터 반환

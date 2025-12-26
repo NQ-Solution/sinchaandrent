@@ -18,6 +18,8 @@ interface TrimData {
   price: number;
   description: string;
   isNew?: boolean;
+  colorIds?: string[];
+  optionSettings?: { optionId: string; isIncluded: boolean }[];
 }
 
 interface ColorData {
@@ -68,6 +70,7 @@ export default function EditVehiclePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'trims' | 'colors' | 'options'>('basic');
+  const [selectedTrimIndex, setSelectedTrimIndex] = useState<number | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
 
   // Basic info
@@ -172,7 +175,37 @@ export default function EditVehiclePage() {
           isActive: vehicle.isActive,
         });
 
-        setTrims(trimsData.map((t: TrimData) => ({ ...t, description: t.description || '' })));
+        // 각 트림의 색상과 옵션 정보 로드
+        const trimsWithDetails = await Promise.all(
+          trimsData.map(async (t: TrimData) => {
+            if (!t.id) return { ...t, description: t.description || '', colorIds: [], optionSettings: [] };
+
+            try {
+              const [trimColorsRes, trimOptionsRes] = await Promise.all([
+                fetch(`/api/admin/vehicles/${id}/trims/${t.id}/colors`),
+                fetch(`/api/admin/vehicles/${id}/trims/${t.id}/options`),
+              ]);
+
+              const trimColors = trimColorsRes.ok ? await trimColorsRes.json() : [];
+              const trimOptions = trimOptionsRes.ok ? await trimOptionsRes.json() : [];
+
+              return {
+                ...t,
+                description: t.description || '',
+                colorIds: trimColors.map((tc: { colorId: string }) => tc.colorId),
+                optionSettings: trimOptions.map((to: { optionId: string; isIncluded: boolean }) => ({
+                  optionId: to.optionId,
+                  isIncluded: to.isIncluded,
+                })),
+              };
+            } catch (error) {
+              console.error('Failed to fetch trim details:', error);
+              return { ...t, description: t.description || '', colorIds: [], optionSettings: [] };
+            }
+          })
+        );
+
+        setTrims(trimsWithDetails);
         setExteriorColors(colorsData.filter((c: ColorData) => c.type === 'EXTERIOR'));
         setInteriorColors(colorsData.filter((c: ColorData) => c.type === 'INTERIOR'));
         setOptions(optionsData.map((o: OptionData) => ({ ...o, description: o.description || '', category: o.category || '기타' })));
@@ -188,13 +221,51 @@ export default function EditVehiclePage() {
 
   // Trim handlers
   const addTrim = () => {
-    setTrims([...trims, { name: '', price: 0, description: '', isNew: true }]);
+    setTrims([...trims, { name: '', price: 0, description: '', isNew: true, colorIds: [], optionSettings: [] }]);
   };
 
-  const updateTrim = (index: number, field: keyof TrimData, value: string | number) => {
+  const updateTrim = (index: number, field: keyof TrimData, value: string | number | string[] | { optionId: string; isIncluded: boolean }[]) => {
     const updated = [...trims];
     updated[index] = { ...updated[index], [field]: value };
     setTrims(updated);
+  };
+
+  const toggleTrimColor = (trimIndex: number, colorId: string) => {
+    const updated = [...trims];
+    const currentColorIds = updated[trimIndex].colorIds || [];
+    if (currentColorIds.includes(colorId)) {
+      updated[trimIndex].colorIds = currentColorIds.filter(id => id !== colorId);
+    } else {
+      updated[trimIndex].colorIds = [...currentColorIds, colorId];
+    }
+    setTrims(updated);
+  };
+
+  const toggleTrimOption = (trimIndex: number, optionId: string, isIncluded: boolean) => {
+    const updated = [...trims];
+    const currentSettings = updated[trimIndex].optionSettings || [];
+    const existingIndex = currentSettings.findIndex(s => s.optionId === optionId);
+
+    if (existingIndex >= 0) {
+      // 이미 있으면 제거
+      updated[trimIndex].optionSettings = currentSettings.filter((_, i) => i !== existingIndex);
+    } else {
+      // 없으면 추가
+      updated[trimIndex].optionSettings = [...currentSettings, { optionId, isIncluded }];
+    }
+    setTrims(updated);
+  };
+
+  const updateTrimOptionIncluded = (trimIndex: number, optionId: string, isIncluded: boolean) => {
+    const updated = [...trims];
+    const currentSettings = updated[trimIndex].optionSettings || [];
+    const settingIndex = currentSettings.findIndex(s => s.optionId === optionId);
+
+    if (settingIndex >= 0) {
+      currentSettings[settingIndex].isIncluded = isIncluded;
+      updated[trimIndex].optionSettings = currentSettings;
+      setTrims(updated);
+    }
   };
 
   const removeTrim = (index: number) => {
@@ -311,17 +382,53 @@ export default function EditVehiclePage() {
 
       // 3. Create/Update trims
       for (const trim of trims) {
+        let trimId = trim.id;
+
         if (trim.isNew) {
-          await fetch(`/api/admin/vehicles/${id}/trims`, {
+          const res = await fetch(`/api/admin/vehicles/${id}/trims`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(trim),
+            body: JSON.stringify({
+              name: trim.name,
+              price: trim.price,
+              description: trim.description,
+            }),
           });
+          const createdTrim = await res.json();
+          trimId = createdTrim.id;
         } else if (trim.id) {
           await fetch(`/api/admin/vehicles/${id}/trims`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ trimId: trim.id, ...trim }),
+            body: JSON.stringify({
+              trimId: trim.id,
+              name: trim.name,
+              price: trim.price,
+              description: trim.description,
+            }),
+          });
+        }
+
+        // 트림별 색상 연결
+        if (trimId && trim.colorIds) {
+          await fetch(`/api/admin/vehicles/${id}/trims/${trimId}/colors`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ colorIds: trim.colorIds }),
+          });
+        }
+
+        // 트림별 옵션 연결
+        if (trimId && trim.optionSettings) {
+          await fetch(`/api/admin/vehicles/${id}/trims/${trimId}/options`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              options: trim.optionSettings.map(s => ({
+                optionId: s.optionId,
+                isIncluded: s.isIncluded,
+              })),
+            }),
           });
         }
       }
@@ -726,56 +833,226 @@ export default function EditVehiclePage() {
 
         {/* Trims Tab */}
         {activeTab === 'trims' && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>트림 관리</CardTitle>
-              <Button type="button" size="sm" onClick={addTrim}>
-                <Plus className="w-4 h-4 mr-1" />
-                트림 추가
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {trims.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">등록된 트림이 없습니다.</p>
-              ) : (
-                <div className="space-y-4">
-                  {trims.map((trim, index) => (
-                    <div key={trim.id || `new-${index}`} className="flex gap-4 items-start p-4 bg-gray-50 rounded-lg">
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Input
-                          label="트림명"
-                          value={trim.name}
-                          onChange={(e) => updateTrim(index, 'name', e.target.value)}
-                          placeholder="예: 스마트"
-                        />
-                        <Input
-                          label="추가 금액 (원)"
-                          type="number"
-                          value={trim.price.toString()}
-                          onChange={(e) => updateTrim(index, 'price', parseInt(e.target.value) || 0)}
-                        />
-                        <Input
-                          label="설명"
-                          value={trim.description}
-                          onChange={(e) => updateTrim(index, 'description', e.target.value)}
-                          placeholder="선택사항"
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600 hover:bg-red-50 mt-6"
-                        onClick={() => removeTrim(index)}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 트림 리스트 */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>트림 목록</CardTitle>
+                <Button type="button" size="sm" onClick={addTrim}>
+                  <Plus className="w-4 h-4 mr-1" />
+                  추가
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {trims.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">등록된 트림이 없습니다.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {trims.map((trim, index) => (
+                      <div
+                        key={trim.id || `new-${index}`}
+                        className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                          selectedTrimIndex === index
+                            ? 'border-primary bg-primary/5'
+                            : 'border-gray-200 hover:border-primary/50'
+                        }`}
+                        onClick={() => setSelectedTrimIndex(index)}
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold">{trim.name || '새 트림'}</p>
+                            <p className="text-sm text-gray-500">
+                              +{trim.price.toLocaleString()}원
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:bg-red-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeTrim(index);
+                              if (selectedTrimIndex === index) setSelectedTrimIndex(null);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* 트림 상세 편집 */}
+            {selectedTrimIndex !== null && trims[selectedTrimIndex] && (
+              <div className="lg:col-span-2 space-y-6">
+                {/* 기본 정보 */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>트림 기본 정보</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Input
+                      label="트림명 *"
+                      value={trims[selectedTrimIndex].name}
+                      onChange={(e) => updateTrim(selectedTrimIndex, 'name', e.target.value)}
+                      placeholder="예: 스마트"
+                    />
+                    <Input
+                      label="추가 금액 (원)"
+                      type="number"
+                      value={trims[selectedTrimIndex].price.toString()}
+                      onChange={(e) => updateTrim(selectedTrimIndex, 'price', parseInt(e.target.value) || 0)}
+                    />
+                    <Input
+                      label="설명"
+                      value={trims[selectedTrimIndex].description}
+                      onChange={(e) => updateTrim(selectedTrimIndex, 'description', e.target.value)}
+                      placeholder="선택사항"
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* 색상 선택 */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>이 트림에서 선택 가능한 색상</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* 외장 색상 */}
+                    <div>
+                      <h4 className="font-medium mb-3">외장 색상</h4>
+                      {exteriorColors.length === 0 ? (
+                        <p className="text-gray-500 text-sm">외장 색상을 먼저 추가해주세요.</p>
+                      ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {exteriorColors.map((color) => {
+                            const isSelected = trims[selectedTrimIndex].colorIds?.includes(color.id || '');
+                            return (
+                              <button
+                                key={color.id}
+                                type="button"
+                                onClick={() => toggleTrimColor(selectedTrimIndex, color.id || '')}
+                                className={`p-3 rounded-lg border-2 flex items-center gap-3 transition-all ${
+                                  isSelected
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-gray-200 hover:border-primary/50'
+                                }`}
+                              >
+                                <div
+                                  className="w-8 h-8 rounded-md border flex-shrink-0"
+                                  style={{ backgroundColor: color.hexCode }}
+                                />
+                                <span className="text-sm font-medium truncate">{color.name}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+
+                    {/* 내장 색상 */}
+                    <div>
+                      <h4 className="font-medium mb-3">내장 색상</h4>
+                      {interiorColors.length === 0 ? (
+                        <p className="text-gray-500 text-sm">내장 색상을 먼저 추가해주세요.</p>
+                      ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {interiorColors.map((color) => {
+                            const isSelected = trims[selectedTrimIndex].colorIds?.includes(color.id || '');
+                            return (
+                              <button
+                                key={color.id}
+                                type="button"
+                                onClick={() => toggleTrimColor(selectedTrimIndex, color.id || '')}
+                                className={`p-3 rounded-lg border-2 flex items-center gap-3 transition-all ${
+                                  isSelected
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-gray-200 hover:border-primary/50'
+                                }`}
+                              >
+                                <div
+                                  className="w-8 h-8 rounded-md border flex-shrink-0"
+                                  style={{ backgroundColor: color.hexCode }}
+                                />
+                                <span className="text-sm font-medium truncate">{color.name}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* 옵션 선택 */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>이 트림에서 선택 가능한 옵션</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {options.length === 0 ? (
+                      <p className="text-gray-500 text-sm">옵션을 먼저 추가해주세요.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {options.map((option) => {
+                          const setting = trims[selectedTrimIndex].optionSettings?.find(
+                            s => s.optionId === option.id
+                          );
+                          const isSelected = !!setting;
+                          const isIncluded = setting?.isIncluded || false;
+
+                          return (
+                            <div
+                              key={option.id}
+                              className={`p-3 rounded-lg border-2 ${
+                                isSelected
+                                  ? 'border-primary bg-primary/5'
+                                  : 'border-gray-200'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => toggleTrimOption(selectedTrimIndex, option.id || '', false)}
+                                  className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                                />
+                                <div className="flex-1">
+                                  <p className="font-medium">{option.name}</p>
+                                  <p className="text-sm text-gray-500">+{option.price.toLocaleString()}원</p>
+                                </div>
+                                {isSelected && (
+                                  <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={isIncluded}
+                                      onChange={(e) => updateTrimOptionIncluded(selectedTrimIndex, option.id || '', e.target.checked)}
+                                      className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                    />
+                                    <span className="text-sm text-green-600 font-medium">기본 포함</span>
+                                  </label>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {selectedTrimIndex === null && trims.length > 0 && (
+              <div className="lg:col-span-2 flex items-center justify-center">
+                <p className="text-gray-500">왼쪽에서 트림을 선택하여 편집하세요.</p>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Colors Tab */}

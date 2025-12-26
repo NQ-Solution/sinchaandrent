@@ -13,19 +13,13 @@ import { KakaoIcon } from '@/components/icons/KakaoIcon';
 import { getCategoryLabel, getFuelTypeLabel, formatPrice, getDriveTypeLabel } from '@/lib/utils';
 import type { Vehicle } from '@/types';
 
-interface TrimOption {
-  id: string;
-  name: string;
-  description?: string | null;
-  price: number;
-}
-
 interface ColorOption {
   id: string;
   name: string;
   hexCode: string;
   price: number;
   type: 'EXTERIOR' | 'INTERIOR';
+  trimColorId?: string;
 }
 
 interface VehicleOption {
@@ -34,6 +28,17 @@ interface VehicleOption {
   description?: string | null;
   price: number;
   category?: string | null;
+  trimOptionId?: string;
+  isIncluded?: boolean;
+}
+
+interface TrimOption {
+  id: string;
+  name: string;
+  description?: string | null;
+  price: number;
+  availableColors?: ColorOption[];
+  availableOptions?: VehicleOption[];
 }
 
 interface VehicleWithOptions extends Omit<Vehicle, 'trims' | 'colors' | 'options'> {
@@ -99,57 +104,8 @@ export default function VehicleDetailPage() {
         setVehicle(data);
 
         if (data.trims && data.trims.length > 0) {
-          const trims = data.trims.map(t => ({
-            id: t.id,
-            name: t.name,
-            description: t.description,
-            price: t.price,
-          }));
-          setAvailableTrims(trims);
-          setSelectedTrim(trims[0]);
-        }
-
-        if (data.colors && data.colors.length > 0) {
-          const exteriorColors = data.colors
-            .filter(c => c.type === 'EXTERIOR')
-            .map(c => ({
-              id: c.id,
-              name: c.name,
-              hexCode: c.hexCode || '#888888',
-              price: c.price,
-              type: 'EXTERIOR' as const,
-            }));
-
-          const interiorColors = data.colors
-            .filter(c => c.type === 'INTERIOR')
-            .map(c => ({
-              id: c.id,
-              name: c.name,
-              hexCode: c.hexCode || '#888888',
-              price: c.price,
-              type: 'INTERIOR' as const,
-            }));
-
-          if (exteriorColors.length > 0) {
-            setAvailableExteriorColors(exteriorColors);
-            setSelectedExterior(exteriorColors[0]);
-          }
-
-          if (interiorColors.length > 0) {
-            setAvailableInteriorColors(interiorColors);
-            setSelectedInterior(interiorColors[0]);
-          }
-        }
-
-        if (data.options && data.options.length > 0) {
-          const options = data.options.map(o => ({
-            id: o.id,
-            name: o.name,
-            description: o.description,
-            price: o.price,
-            category: o.category,
-          }));
-          setAvailableOptions(options);
+          setAvailableTrims(data.trims);
+          setSelectedTrim(data.trims[0]);
         }
       } catch (error) {
         console.error(error);
@@ -162,6 +118,45 @@ export default function VehicleDetailPage() {
       fetchVehicle();
     }
   }, [params.id]);
+
+  // 트림 변경 시 색상과 옵션 업데이트
+  useEffect(() => {
+    if (!selectedTrim) return;
+
+    // 트림의 availableColors에서 외부/내부 색상 분리
+    if (selectedTrim.availableColors && selectedTrim.availableColors.length > 0) {
+      const exteriorColors = selectedTrim.availableColors.filter(c => c.type === 'EXTERIOR');
+      const interiorColors = selectedTrim.availableColors.filter(c => c.type === 'INTERIOR');
+
+      setAvailableExteriorColors(exteriorColors);
+      setAvailableInteriorColors(interiorColors);
+
+      // 기존 선택이 현재 트림에서 사용 가능한지 확인
+      if (!exteriorColors.find(c => c.id === selectedExterior?.id)) {
+        setSelectedExterior(exteriorColors[0] || null);
+      }
+      if (!interiorColors.find(c => c.id === selectedInterior?.id)) {
+        setSelectedInterior(interiorColors[0] || null);
+      }
+    } else {
+      setAvailableExteriorColors([]);
+      setAvailableInteriorColors([]);
+      setSelectedExterior(null);
+      setSelectedInterior(null);
+    }
+
+    // 트림의 availableOptions 설정
+    if (selectedTrim.availableOptions && selectedTrim.availableOptions.length > 0) {
+      setAvailableOptions(selectedTrim.availableOptions);
+
+      // 기본 포함 옵션은 자동 선택
+      const includedOptions = selectedTrim.availableOptions.filter(o => o.isIncluded);
+      setSelectedOptions(includedOptions);
+    } else {
+      setAvailableOptions([]);
+      setSelectedOptions([]);
+    }
+  }, [selectedTrim]);
 
   useEffect(() => {
     if (showMobileSummary) {
@@ -178,7 +173,8 @@ export default function VehicleDetailPage() {
   const trimPrice = selectedTrim?.price || 0;
   const exteriorPrice = selectedExterior?.price || 0;
   const interiorPrice = selectedInterior?.price || 0;
-  const optionsTotal = selectedOptions.reduce((sum, opt) => sum + opt.price, 0);
+  // 기본 포함 옵션은 가격 계산에서 제외
+  const optionsTotal = selectedOptions.reduce((sum, opt) => sum + (opt.isIncluded ? 0 : opt.price), 0);
   const totalVehiclePrice = basePrice + trimPrice + exteriorPrice + interiorPrice + optionsTotal;
   const depositAmount = Math.floor(totalVehiclePrice * (depositRatio / 100));
 
@@ -210,6 +206,9 @@ export default function VehicleDetailPage() {
   const hasMonthlyPayment = getMonthlyPaymentFromDB !== null && getMonthlyPaymentFromDB > 0;
 
   const toggleOption = (option: VehicleOption) => {
+    // 기본 포함 옵션은 선택 해제 불가
+    if (option.isIncluded) return;
+
     setSelectedOptions((prev) =>
       prev.find((o) => o.id === option.id)
         ? prev.filter((o) => o.id !== option.id)
@@ -220,8 +219,15 @@ export default function VehicleDetailPage() {
   const handleCopyQuote = async () => {
     if (!vehicle || !hasMonthlyPayment) return;
 
-    const optionsList = selectedOptions.length > 0
-      ? `\n추가 옵션:\n${selectedOptions.map((o) => `  - ${o.name}: +${formatPrice(o.price)}원`).join('\n')}`
+    const includedOptions = selectedOptions.filter(o => o.isIncluded);
+    const additionalOptions = selectedOptions.filter(o => !o.isIncluded);
+
+    const includedOptionsList = includedOptions.length > 0
+      ? `\n기본 포함 옵션:\n${includedOptions.map((o) => `  - ${o.name}`).join('\n')}`
+      : '';
+
+    const additionalOptionsList = additionalOptions.length > 0
+      ? `\n추가 옵션:\n${additionalOptions.map((o) => `  - ${o.name}: +${formatPrice(o.price)}원`).join('\n')}`
       : '';
 
     const quote = `
@@ -230,7 +236,7 @@ export default function VehicleDetailPage() {
 차량: ${vehicle.brand?.nameKr} ${vehicle.name}
 트림: ${selectedTrim?.name || '선택 없음'}
 외장 색상: ${selectedExterior?.name || '선택 없음'}
-내장 색상: ${selectedInterior?.name || '선택 없음'}${optionsList}
+내장 색상: ${selectedInterior?.name || '선택 없음'}${includedOptionsList}${additionalOptionsList}
 
 ■ 차량 가격 상세
 - 기본 차량: ${formatPrice(basePrice)}원
@@ -605,29 +611,44 @@ export default function VehicleDetailPage() {
                   <div className="space-y-3">
                     {availableOptions.map((option) => {
                       const isSelected = selectedOptions.find((o) => o.id === option.id);
+                      const isIncluded = option.isIncluded;
                       return (
                         <button
                           key={option.id}
                           onClick={() => toggleOption(option)}
+                          disabled={isIncluded}
                           className={`w-full p-4 rounded-xl border-2 flex items-center gap-4 text-left transition-all ${
-                            isSelected
+                            isIncluded
+                              ? 'border-green-200 bg-green-50 cursor-default'
+                              : isSelected
                               ? 'border-primary bg-primary/5'
                               : 'border-gray-100 hover:border-primary/50'
                           }`}
                         >
                           <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center flex-shrink-0 ${
-                            isSelected ? 'border-primary bg-primary' : 'border-gray-300'
+                            isIncluded
+                              ? 'border-green-500 bg-green-500'
+                              : isSelected
+                              ? 'border-primary bg-primary'
+                              : 'border-gray-300'
                           }`}>
-                            {isSelected && <Check className="w-4 h-4 text-white" />}
+                            {(isSelected || isIncluded) && <Check className="w-4 h-4 text-white" />}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold">{option.name}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold">{option.name}</p>
+                              {isIncluded && (
+                                <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                                  기본 포함
+                                </span>
+                              )}
+                            </div>
                             {option.description && (
                               <p className="text-sm text-gray-500 truncate">{option.description}</p>
                             )}
                           </div>
-                          <p className="text-primary font-bold flex-shrink-0">
-                            +{formatPrice(option.price)}원
+                          <p className={`font-bold flex-shrink-0 ${isIncluded ? 'text-green-600' : 'text-primary'}`}>
+                            {isIncluded ? '포함' : `+${formatPrice(option.price)}원`}
                           </p>
                         </button>
                       );
