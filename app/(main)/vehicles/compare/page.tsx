@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Car, ArrowLeft, Plus, X, Phone, ChevronRight } from 'lucide-react';
+import { Car, ArrowLeft, Plus, X, Phone, ChevronRight, ChevronLeft, Fuel, Users, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { KakaoIcon } from '@/components/icons/KakaoIcon';
 import { formatPrice, getCategoryLabel, getFuelTypeLabel, getDriveTypeLabel } from '@/lib/utils';
@@ -19,6 +19,7 @@ function CompareContent() {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mobileActiveIndex, setMobileActiveIndex] = useState(0);
 
   const phoneNumber = process.env.NEXT_PUBLIC_PHONE_NUMBER || '1588-0000';
   const kakaoUrl = process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || '#';
@@ -75,26 +76,93 @@ function CompareContent() {
      v.brand?.nameKr?.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const CompareRow = ({ label, values, highlight = false }: { label: string; values: (string | number | null)[]; highlight?: boolean }) => (
-    <div className={`grid grid-cols-${vehicles.length + 1} border-b ${highlight ? 'bg-primary/5' : ''}`}>
-      <div className="p-4 font-medium text-gray-700 bg-gray-50 border-r">
-        {label}
+  // 데스크톱용 비교 행
+  const CompareRow = ({ label, values, highlight = false }: { label: string; values: (string | number | null)[]; highlight?: boolean }) => {
+    const gridCols = vehicles.length === 2 ? 'grid-cols-3' : vehicles.length === 3 ? 'grid-cols-4' : 'grid-cols-2';
+    return (
+      <div className={`grid ${gridCols} border-b ${highlight ? 'bg-primary/5' : ''}`}>
+        <div className="p-3 md:p-4 font-medium text-gray-700 bg-gray-50 border-r text-sm md:text-base">
+          {label}
+        </div>
+        {values.map((value, index) => (
+          <div key={index} className="p-3 md:p-4 text-center border-r last:border-r-0 text-sm md:text-base">
+            {value !== null && value !== undefined ? (
+              <span className={highlight ? 'font-bold text-primary' : ''}>{value}</span>
+            ) : (
+              <span className="text-gray-400">-</span>
+            )}
+          </div>
+        ))}
       </div>
-      {values.map((value, index) => (
-        <div key={index} className="p-4 text-center border-r last:border-r-0">
-          {value !== null && value !== undefined ? (
-            <span className={highlight ? 'font-bold text-primary' : ''}>{value}</span>
-          ) : (
-            <span className="text-gray-400">-</span>
-          )}
+    );
+  };
+
+  // 모바일용 차량 스펙 카드
+  const MobileVehicleSpec = ({ vehicle }: { vehicle: Vehicle }) => (
+    <div className="space-y-3">
+      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+        <Fuel className="w-5 h-5 text-gray-500" />
+        <div>
+          <p className="text-xs text-gray-500">연료</p>
+          <p className="font-medium">{vehicle.fuelTypes?.map(ft => getFuelTypeLabel(ft)).join('/') || '-'}</p>
         </div>
-      ))}
-      {/* 빈 슬롯 */}
-      {Array.from({ length: 3 - vehicles.length }).map((_, i) => (
-        <div key={`empty-${i}`} className="p-4 text-center border-r last:border-r-0 bg-gray-50">
-          <span className="text-gray-300">-</span>
+      </div>
+      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+        <Users className="w-5 h-5 text-gray-500" />
+        <div>
+          <p className="text-xs text-gray-500">승차인원</p>
+          <p className="font-medium">
+            {vehicle.seatingCapacityMin && vehicle.seatingCapacityMax
+              ? (vehicle.seatingCapacityMin === vehicle.seatingCapacityMax
+                ? `${vehicle.seatingCapacityMin}인승`
+                : `${vehicle.seatingCapacityMin}~${vehicle.seatingCapacityMax}인승`)
+              : '-'}
+          </p>
         </div>
-      ))}
+      </div>
+      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+        <Settings2 className="w-5 h-5 text-gray-500" />
+        <div>
+          <p className="text-xs text-gray-500">구동방식</p>
+          <p className="font-medium">{vehicle.driveTypes?.map(dt => getDriveTypeLabel(dt)).join('/') || '-'}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+        <Car className="w-5 h-5 text-gray-500" />
+        <div>
+          <p className="text-xs text-gray-500">차종</p>
+          <p className="font-medium">{getCategoryLabel(vehicle.category)}</p>
+        </div>
+      </div>
+
+      {/* 가격 정보 */}
+      <div className="mt-4 p-4 bg-primary/5 rounded-xl">
+        <p className="text-sm text-gray-600 mb-2">월 렌트료</p>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-500">60개월 / 0%</span>
+            <span className="font-bold text-primary">
+              {vehicle.rentPrice60_0 ? `${formatPrice(vehicle.rentPrice60_0)}원~` : '상담'}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-500">48개월 / 0%</span>
+            <span className="font-medium">
+              {vehicle.rentPrice48_0 ? `${formatPrice(vehicle.rentPrice48_0)}원~` : '상담'}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-500">36개월 / 0%</span>
+            <span className="font-medium">
+              {vehicle.rentPrice36_0 ? `${formatPrice(vehicle.rentPrice36_0)}원~` : '상담'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <Button asChild className="w-full rounded-full mt-4">
+        <Link href={`/vehicle/${vehicle.id}`}>견적 확인하기</Link>
+      </Button>
     </div>
   );
 
@@ -139,9 +207,128 @@ function CompareContent() {
         </div>
       </section>
 
-      {/* Vehicle Cards */}
+      {/* Vehicle Cards - 모바일 스와이프 */}
       <section className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {/* 모바일: 스와이프 가능한 카드 */}
+        <div className="md:hidden mb-6">
+          {vehicles.length > 0 ? (
+            <>
+              {/* 인디케이터 */}
+              <div className="flex justify-center gap-2 mb-4">
+                {vehicles.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setMobileActiveIndex(idx)}
+                    className={`w-2.5 h-2.5 rounded-full transition-all ${
+                      mobileActiveIndex === idx ? 'bg-primary w-6' : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+                {vehicles.length < 3 && (
+                  <button
+                    onClick={() => setMobileActiveIndex(vehicles.length)}
+                    className={`w-2.5 h-2.5 rounded-full transition-all ${
+                      mobileActiveIndex === vehicles.length ? 'bg-primary w-6' : 'bg-gray-300'
+                    }`}
+                  />
+                )}
+              </div>
+
+              {/* 카드 슬라이더 */}
+              <div className="relative overflow-hidden">
+                <div
+                  className="flex transition-transform duration-300 ease-out"
+                  style={{ transform: `translateX(-${mobileActiveIndex * 100}%)` }}
+                >
+                  {vehicles.map((vehicle) => (
+                    <div key={vehicle.id} className="w-full flex-shrink-0 px-2">
+                      <div className="bg-white rounded-2xl shadow-sm overflow-hidden relative">
+                        <button
+                          onClick={() => removeVehicle(vehicle.id)}
+                          className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-md"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+
+                        <div className="aspect-[16/10] bg-white relative">
+                          {vehicle.thumbnail ? (
+                            <Image src={vehicle.thumbnail} alt={vehicle.name} fill className="object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Car className="w-12 h-12 text-gray-300" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="p-4">
+                          <p className="text-xs text-gray-400 mb-1">{vehicle.brand?.nameKr}</p>
+                          <h3 className="font-bold text-lg mb-2">{vehicle.name}</h3>
+                          <div className="flex items-baseline gap-1 mb-4">
+                            <span className="text-2xl font-black text-primary">
+                              {vehicle.rentPrice60_0 ? formatPrice(vehicle.rentPrice60_0) : '상담'}
+                            </span>
+                            {vehicle.rentPrice60_0 && <span className="text-sm text-gray-400">원~/월</span>}
+                          </div>
+
+                          {/* 모바일 스펙 상세 */}
+                          <MobileVehicleSpec vehicle={vehicle} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* 차량 추가 슬롯 */}
+                  {vehicles.length < 3 && (
+                    <div className="w-full flex-shrink-0 px-2">
+                      <button
+                        onClick={() => setShowAddModal(true)}
+                        className="w-full bg-white rounded-2xl shadow-sm border-2 border-dashed border-gray-200 flex flex-col items-center justify-center py-20"
+                      >
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                          <Plus className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <p className="text-gray-500 font-medium">차량 추가</p>
+                        <p className="text-sm text-gray-400">최대 3대 비교 가능</p>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* 좌우 네비게이션 버튼 */}
+                {mobileActiveIndex > 0 && (
+                  <button
+                    onClick={() => setMobileActiveIndex(prev => prev - 1)}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur rounded-full shadow-lg flex items-center justify-center"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                )}
+                {mobileActiveIndex < (vehicles.length < 3 ? vehicles.length : vehicles.length - 1) && (
+                  <button
+                    onClick={() => setMobileActiveIndex(prev => prev + 1)}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur rounded-full shadow-lg flex items-center justify-center"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+            </>
+          ) : (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="w-full bg-white rounded-2xl shadow-sm border-2 border-dashed border-gray-200 flex flex-col items-center justify-center py-16"
+            >
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <Plus className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="text-gray-500 font-medium">비교할 차량 추가</p>
+              <p className="text-sm text-gray-400">최대 3대 비교 가능</p>
+            </button>
+          )}
+        </div>
+
+        {/* 데스크톱: 그리드 */}
+        <div className="hidden md:grid grid-cols-3 gap-4 mb-8">
           {vehicles.map((vehicle) => (
             <div key={vehicle.id} className="bg-white rounded-2xl shadow-sm overflow-hidden relative group">
               <button
@@ -153,12 +340,7 @@ function CompareContent() {
 
               <div className="aspect-[16/10] bg-white relative">
                 {vehicle.thumbnail ? (
-                  <Image
-                    src={vehicle.thumbnail}
-                    alt={vehicle.name}
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={vehicle.thumbnail} alt={vehicle.name} fill className="object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Car className="w-12 h-12 text-gray-300" />
@@ -201,13 +383,13 @@ function CompareContent() {
 
           {/* 빈 슬롯 */}
           {Array.from({ length: Math.max(0, 2 - vehicles.length) }).map((_, i) => (
-            <div key={`empty-slot-${i}`} className="hidden md:block" />
+            <div key={`empty-slot-${i}`} />
           ))}
         </div>
 
-        {vehicles.length >= 2 ? (
-          /* Comparison Table */
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        {/* 데스크톱 비교 테이블 */}
+        {vehicles.length >= 2 && (
+          <div className="hidden md:block bg-white rounded-2xl shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <div className="min-w-[600px]">
                 {/* 기본 정보 */}
@@ -289,8 +471,29 @@ function CompareContent() {
               </div>
             </div>
           </div>
-        ) : (
-          <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+        )}
+
+        {/* 모바일 안내 메시지 (차량 1대 이하일 때) */}
+        {vehicles.length < 2 && (
+          <div className="md:hidden bg-white rounded-2xl shadow-sm p-8 text-center mt-6">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Car className="w-8 h-8 text-primary" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              비교할 차량을 추가해주세요
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              좌우로 스와이프하여 차량을 비교할 수 있습니다
+            </p>
+            <Button onClick={() => setShowAddModal(true)} className="rounded-full">
+              차량 추가하기
+            </Button>
+          </div>
+        )}
+
+        {/* 데스크톱 안내 메시지 (차량 1대 이하일 때) */}
+        {vehicles.length < 2 && (
+          <div className="hidden md:block bg-white rounded-2xl shadow-sm p-12 text-center">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Car className="w-10 h-10 text-gray-400" />
             </div>

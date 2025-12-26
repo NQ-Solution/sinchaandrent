@@ -178,6 +178,21 @@ export default function VehicleDetailPage() {
   const totalVehiclePrice = basePrice + trimPrice + exteriorPrice + interiorPrice + optionsTotal;
   const depositAmount = Math.floor(totalVehiclePrice * (depositRatio / 100));
 
+  // 가장 저렴한 트림 가격 (기본 트림)
+  const lowestTrimPrice = availableTrims.length > 0
+    ? Math.min(...availableTrims.map(t => t.price))
+    : 0;
+
+  // 추가 비용 발생 여부 체크 (기본 대비 추가 금액이 있으면 true)
+  // - 트림이 최저가 트림보다 비싸면 추가 비용
+  // - 색상에 추가 비용이 있으면 추가 비용
+  // - 기본 포함이 아닌 옵션을 선택하면 추가 비용
+  const hasAdditionalCost =
+    trimPrice > lowestTrimPrice ||
+    exteriorPrice > 0 ||
+    interiorPrice > 0 ||
+    optionsTotal > 0;
+
   const getMonthlyPaymentFromDB = useMemo(() => {
     if (!vehicle) return null;
     const fieldName = `rentPrice${period}_${depositRatio}` as keyof typeof vehicle;
@@ -419,7 +434,7 @@ export default function VehicleDetailPage() {
                   <div>
                     <p className="text-sm text-gray-400 mb-1">월 렌트료</p>
                     <p className="text-3xl md:text-4xl font-black">
-                      {hasMonthlyPayment ? (
+                      {hasMonthlyPayment && !hasAdditionalCost ? (
                         <>
                           {formatPrice(getMonthlyPaymentFromDB!)}
                           <span className="text-lg font-normal text-gray-400">원~</span>
@@ -430,7 +445,9 @@ export default function VehicleDetailPage() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-gray-400">{period}개월 / 보증금 {depositRatio}% 기준</p>
+                    <p className="text-xs text-gray-400">
+                      {hasAdditionalCost ? '추가 옵션 선택됨' : `${period}개월 / 보증금 ${depositRatio}% 기준`}
+                    </p>
                   </div>
                 </div>
 
@@ -809,7 +826,7 @@ export default function VehicleDetailPage() {
               </div>
 
               {/* Monthly Payment */}
-              {hasMonthlyPayment ? (
+              {hasMonthlyPayment && !hasAdditionalCost ? (
                 <div className="bg-gradient-to-r from-primary to-primary-600 text-white rounded-xl p-4 mb-4">
                   <div className="text-sm opacity-90 mb-1">월 납입금</div>
                   <div className="text-3xl font-black mb-1">{formatPrice(getMonthlyPaymentFromDB!)}원~</div>
@@ -818,9 +835,12 @@ export default function VehicleDetailPage() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-gray-100 rounded-xl p-6 mb-4 text-center">
-                  <p className="text-gray-600">해당 조건의 가격은</p>
-                  <p className="text-gray-600">상담을 통해 안내드립니다.</p>
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl p-6 mb-4 text-center">
+                  <p className="text-lg font-bold mb-1">맞춤 견적 상담</p>
+                  <p className="text-sm opacity-90">
+                    {hasAdditionalCost ? '선택하신 옵션에 맞는 정확한' : '해당 조건의'}
+                  </p>
+                  <p className="text-sm opacity-90">금액을 안내해 드립니다.</p>
                 </div>
               )}
 
@@ -839,7 +859,7 @@ export default function VehicleDetailPage() {
                       전화
                     </a>
                   </Button>
-                  {hasMonthlyPayment ? (
+                  {hasMonthlyPayment && !hasAdditionalCost ? (
                     <Button onClick={handleCopyQuote} variant="outline" className="rounded-full">
                       {copied ? <Check className="w-4 h-4 mr-1" /> : <Copy className="w-4 h-4 mr-1" />}
                       {copied ? '복사됨' : '견적복사'}
@@ -873,9 +893,11 @@ export default function VehicleDetailPage() {
             className="w-full flex items-center justify-between mb-3"
           >
             <div>
-              <p className="text-xs text-gray-500">예상 월 납입금</p>
-              <p className="text-xl font-black text-primary">
-                {hasMonthlyPayment ? `${formatPrice(getMonthlyPaymentFromDB!)}원~` : '상담 필요'}
+              <p className="text-xs text-gray-500">
+                {hasAdditionalCost ? '맞춤 견적' : '예상 월 납입금'}
+              </p>
+              <p className={`text-xl font-black ${hasAdditionalCost ? 'text-orange-500' : 'text-primary'}`}>
+                {hasMonthlyPayment && !hasAdditionalCost ? `${formatPrice(getMonthlyPaymentFromDB!)}원~` : '상담 필요'}
               </p>
             </div>
             <div className="flex items-center gap-1 text-sm text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
@@ -947,7 +969,7 @@ export default function VehicleDetailPage() {
                 <div className="text-xl font-bold">{formatPrice(totalVehiclePrice)}원</div>
               </div>
 
-              {hasMonthlyPayment && (
+              {hasMonthlyPayment && !hasAdditionalCost ? (
                 <div className="bg-gradient-to-r from-primary to-primary-600 text-white rounded-xl p-4">
                   <div className="text-sm opacity-90 mb-1">월 납입금</div>
                   <div className="text-2xl font-bold">{formatPrice(getMonthlyPaymentFromDB!)}원~</div>
@@ -955,14 +977,28 @@ export default function VehicleDetailPage() {
                     {period}개월 / 보증금 {depositRatio}% 기준
                   </div>
                 </div>
+              ) : (
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl p-4 text-center">
+                  <div className="text-lg font-bold mb-1">맞춤 견적 상담</div>
+                  <div className="text-sm opacity-90">
+                    선택하신 옵션에 맞는 정확한 금액을 안내해 드립니다.
+                  </div>
+                </div>
               )}
             </div>
 
             <div className="p-4 border-t space-y-2">
-              {hasMonthlyPayment && (
+              {hasMonthlyPayment && !hasAdditionalCost ? (
                 <Button onClick={handleCopyQuote} variant="secondary" className="w-full rounded-full">
                   {copied ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
                   {copied ? '복사 완료!' : '견적 복사하기'}
+                </Button>
+              ) : (
+                <Button asChild variant="secondary" className="w-full rounded-full bg-yellow-400 hover:bg-yellow-300 text-gray-900">
+                  <a href={kakaoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
+                    <KakaoIcon className="w-4 h-4" />
+                    카카오톡 상담
+                  </a>
                 </Button>
               )}
               <Button asChild className="w-full rounded-full">
