@@ -44,6 +44,7 @@ const nextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: ['localhost:3000', '*.ngrok-free.app'],
+      bodySizeLimit: '50mb', // 대용량 PDF 업로드 지원
     },
   },
 };

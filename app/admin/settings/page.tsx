@@ -110,11 +110,24 @@ export default function AdminSettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // 파일 크기 체크 (10MB 제한)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      setMessage({
+        type: 'error',
+        text: `파일 크기가 너무 큽니다. (최대 10MB, 현재: ${(file.size / 1024 / 1024).toFixed(2)}MB)`
+      });
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
       const updated = [...settings.loanBrokerDocuments];
       updated[index] = { ...updated[index], file: reader.result as string };
       setSettings(prev => ({ ...prev, loanBrokerDocuments: updated }));
+    };
+    reader.onerror = () => {
+      setMessage({ type: 'error', text: 'PDF 파일을 읽는 중 오류가 발생했습니다.' });
     };
     reader.readAsDataURL(file);
   };
@@ -130,9 +143,22 @@ export default function AdminSettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // 파일 크기 체크 (5MB 제한)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      setMessage({
+        type: 'error',
+        text: `이미지 크기가 너무 큽니다. (최대 5MB, 현재: ${(file.size / 1024 / 1024).toFixed(2)}MB)`
+      });
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
       setSettings(prev => ({ ...prev, loanBrokerImage: reader.result as string }));
+    };
+    reader.onerror = () => {
+      setMessage({ type: 'error', text: '이미지 파일을 읽는 중 오류가 발생했습니다.' });
     };
     reader.readAsDataURL(file);
   };
@@ -149,20 +175,44 @@ export default function AdminSettingsPage() {
         loanBrokerDocuments: JSON.stringify(settings.loanBrokerDocuments),
       };
 
+      // 페이로드 크기 체크
+      const payload = JSON.stringify(dataToSave);
+      const payloadSize = new Blob([payload]).size;
+      const payloadMB = (payloadSize / 1024 / 1024).toFixed(2);
+
+      console.log(`Payload size: ${payloadMB}MB`);
+
+      if (payloadSize > 40 * 1024 * 1024) { // 40MB 경고
+        setMessage({
+          type: 'error',
+          text: `데이터 크기가 너무 큽니다 (${payloadMB}MB). PDF 파일 크기를 줄여주세요.`
+        });
+        setSaving(false);
+        return;
+      }
+
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataToSave),
+        body: payload,
       });
 
       if (res.ok) {
         setMessage({ type: 'success', text: '설정이 저장되었습니다.' });
       } else {
-        setMessage({ type: 'error', text: '저장에 실패했습니다.' });
+        const errorData = await res.json().catch(() => ({ error: '알 수 없는 오류' }));
+        setMessage({
+          type: 'error',
+          text: `저장에 실패했습니다: ${errorData.error || res.statusText}`
+        });
       }
     } catch (error) {
       console.error('Save error:', error);
-      setMessage({ type: 'error', text: '오류가 발생했습니다.' });
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      setMessage({
+        type: 'error',
+        text: `오류가 발생했습니다: ${errorMessage}`
+      });
     } finally {
       setSaving(false);
     }
@@ -495,9 +545,14 @@ export default function AdminSettingsPage() {
                       ))
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    고객이 다운로드할 수 있는 등록증 PDF입니다. 여러 캐피탈사의 등록증을 등록할 수 있습니다.
-                  </p>
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs text-gray-500">
+                      고객이 다운로드할 수 있는 등록증 PDF입니다. 여러 캐피탈사의 등록증을 등록할 수 있습니다.
+                    </p>
+                    <p className="text-xs text-amber-600 font-medium">
+                      ⚠️ 각 PDF 파일은 10MB 이하로 업로드해주세요. 파일이 크면 저장 시 오류가 발생할 수 있습니다.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="p-4 bg-blue-50 rounded-lg">

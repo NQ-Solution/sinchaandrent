@@ -9,6 +9,9 @@ import path from 'path';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+// 대용량 PDF 업로드를 위한 타임아웃 증가
+export const maxDuration = 60; // 최대 60초
+
 function getCompanyInfoFilePath() {
   return path.join(process.cwd(), 'data', 'company-info.json');
 }
