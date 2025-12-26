@@ -13,6 +13,8 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
     const type = formData.get('type') as string; // 'thumbnail' or 'image'
     const sizePreset = formData.get('sizePreset') as ImageSizePreset | null;
+    const paddingStr = formData.get('padding') as string | null;
+    const padding = paddingStr ? parseInt(paddingStr, 10) : 0;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -30,8 +32,8 @@ export async function POST(request: NextRequest) {
     if (type === 'thumbnail') {
       optimizedBuffer = await optimizeThumbnail(buffer);
     } else if (sizePreset && sizePreset in IMAGE_SIZE_PRESETS) {
-      // 사이즈 프리셋이 지정된 경우
-      optimizedBuffer = await optimizeImageWithSize(buffer, sizePreset);
+      // 사이즈 프리셋이 지정된 경우 (패딩 포함)
+      optimizedBuffer = await optimizeImageWithSize(buffer, sizePreset, padding);
     } else {
       optimizedBuffer = await optimizeImage(buffer);
     }

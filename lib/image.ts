@@ -64,9 +64,21 @@ export const IMAGE_SIZE_PRESETS = {
 
 export type ImageSizePreset = keyof typeof IMAGE_SIZE_PRESETS;
 
+// 패딩 옵션 정의
+export const PADDING_OPTIONS = {
+  0: { label: '없음', value: 0 },
+  5: { label: '5%', value: 5 },
+  10: { label: '10%', value: 10 },
+  15: { label: '15%', value: 15 },
+  20: { label: '20%', value: 20 },
+} as const;
+
+export type PaddingPercent = keyof typeof PADDING_OPTIONS;
+
 export async function optimizeImageWithSize(
   buffer: Buffer,
-  preset: ImageSizePreset = 'vehicle'
+  preset: ImageSizePreset = 'vehicle',
+  paddingPercent: number = 0
 ): Promise<Buffer> {
   const config = IMAGE_SIZE_PRESETS[preset];
 
@@ -82,11 +94,33 @@ export async function optimizeImageWithSize(
 
   // 원본 유지가 아닌 경우에만 리사이즈
   if (config.width && config.height) {
-    sharpInstance = sharpInstance.resize(config.width, config.height, {
-      fit: config.fit,
+    // 패딩이 있는 경우 이미지를 더 작게 리사이즈
+    const paddingRatio = paddingPercent / 100;
+    const innerWidth = Math.round(config.width * (1 - paddingRatio * 2));
+    const innerHeight = Math.round(config.height * (1 - paddingRatio * 2));
+
+    sharpInstance = sharpInstance.resize(innerWidth, innerHeight, {
+      fit: 'inside',
       withoutEnlargement: true,
-      background: { r: 255, g: 255, b: 255 }, // 리사이즈 시에도 흰색 배경
+      background: { r: 255, g: 255, b: 255 },
     });
+
+    // 패딩이 있는 경우 최종 크기로 확장 (흰색 배경으로 중앙 배치)
+    if (paddingPercent > 0) {
+      sharpInstance = sharpInstance.extend({
+        top: Math.round((config.height - innerHeight) / 2),
+        bottom: Math.round((config.height - innerHeight) / 2),
+        left: Math.round((config.width - innerWidth) / 2),
+        right: Math.round((config.width - innerWidth) / 2),
+        background: { r: 255, g: 255, b: 255 },
+      });
+
+      // 정확한 최종 크기로 조정
+      sharpInstance = sharpInstance.resize(config.width, config.height, {
+        fit: 'cover',
+        position: 'center',
+      });
+    }
   }
 
   // 모든 이미지를 JPEG로 변환 (최적화)

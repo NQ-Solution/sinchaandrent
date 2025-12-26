@@ -7,13 +7,22 @@ import { Button } from './Button';
 
 // 사이즈 프리셋 (서버와 동일하게 유지)
 const SIZE_PRESETS = {
-  vehicle: { label: '차량 이미지 (800x500)', description: '권장' },
-  vehicleHD: { label: '고화질 (1200x750)', description: 'Retina 대응' },
-  banner: { label: '배너 (1920x600)', description: '메인 배너용' },
-  original: { label: '원본 유지', description: '리사이즈 없음' },
+  vehicle: { label: '800x500', description: '권장' },
+  vehicleHD: { label: '1200x750', description: '고화질' },
+  banner: { label: '1920x600', description: '배너용' },
+  original: { label: '원본', description: '' },
 } as const;
 
 type SizePreset = keyof typeof SIZE_PRESETS;
+
+// 패딩 옵션
+const PADDING_OPTIONS = [
+  { value: 0, label: '없음' },
+  { value: 5, label: '5%' },
+  { value: 10, label: '10%' },
+  { value: 15, label: '15%' },
+  { value: 20, label: '20%' },
+];
 
 interface ImageUploadProps {
   label: string;
@@ -38,6 +47,7 @@ export function ImageUpload({
   const [urlInput, setUrlInput] = useState('');
   const [uploading, setUploading] = useState(false);
   const [selectedSize, setSelectedSize] = useState<SizePreset>(defaultSize);
+  const [selectedPadding, setSelectedPadding] = useState(0);
   const [showSizeOptions, setShowSizeOptions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -49,6 +59,7 @@ export function ImageUpload({
       formData.append('type', type);
       if (showSizeSelector && type !== 'thumbnail') {
         formData.append('sizePreset', selectedSize);
+        formData.append('padding', selectedPadding.toString());
       }
 
       const res = await fetch('/api/admin/upload', {
@@ -127,7 +138,7 @@ export function ImageUpload({
           URL 입력
         </button>
 
-        {/* Size Selector */}
+        {/* Size & Padding Selector */}
         {showSizeSelector && type !== 'thumbnail' && (
           <div className="relative ml-auto">
             <button
@@ -137,6 +148,7 @@ export function ImageUpload({
             >
               <Settings2 className="w-4 h-4" />
               {SIZE_PRESETS[selectedSize].label}
+              {selectedPadding > 0 && <span className="text-blue-400">+{selectedPadding}%</span>}
             </button>
 
             {showSizeOptions && (
@@ -145,23 +157,64 @@ export function ImageUpload({
                   className="fixed inset-0 z-10"
                   onClick={() => setShowSizeOptions(false)}
                 />
-                <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg py-1 z-20 min-w-[220px]">
-                  {(Object.keys(SIZE_PRESETS) as SizePreset[]).map((key) => (
+                <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-20 min-w-[260px]">
+                  {/* 사이즈 선택 */}
+                  <div className="p-3 border-b">
+                    <p className="text-xs font-medium text-gray-500 mb-2">이미지 크기</p>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {(Object.keys(SIZE_PRESETS) as SizePreset[]).map((key) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setSelectedSize(key)}
+                          className={`px-3 py-2 text-sm rounded-lg transition-all ${
+                            selectedSize === key
+                              ? 'bg-primary text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          {SIZE_PRESETS[key].label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 여백 선택 */}
+                  <div className="p-3">
+                    <p className="text-xs font-medium text-gray-500 mb-2">여백 (축소)</p>
+                    <div className="flex gap-1.5">
+                      {PADDING_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setSelectedPadding(opt.value)}
+                          className={`flex-1 px-2 py-1.5 text-xs rounded-lg transition-all ${
+                            selectedPadding === opt.value
+                              ? 'bg-primary text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                    {selectedPadding > 0 && (
+                      <p className="text-xs text-gray-400 mt-2">
+                        이미지 주변에 {selectedPadding}% 흰색 여백이 추가됩니다
+                      </p>
+                    )}
+                  </div>
+
+                  {/* 적용 버튼 */}
+                  <div className="p-3 border-t bg-gray-50">
                     <button
-                      key={key}
                       type="button"
-                      onClick={() => {
-                        setSelectedSize(key);
-                        setShowSizeOptions(false);
-                      }}
-                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 flex justify-between items-center gap-3 ${
-                        selectedSize === key ? 'bg-primary/5 text-primary font-medium' : ''
-                      }`}
+                      onClick={() => setShowSizeOptions(false)}
+                      className="w-full py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90"
                     >
-                      <span>{SIZE_PRESETS[key].label}</span>
-                      <span className="text-xs text-gray-400">{SIZE_PRESETS[key].description}</span>
+                      설정 완료
                     </button>
-                  ))}
+                  </div>
                 </div>
               </>
             )}
