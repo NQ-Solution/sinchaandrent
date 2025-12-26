@@ -528,11 +528,13 @@ export default function EditVehiclePage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <ImageUpload
-                  label="대표 이미지 (썸네일)"
+                  label="대표 이미지"
                   value={formData.thumbnail}
                   onChange={(url) => setFormData({ ...formData, thumbnail: url })}
-                  type="thumbnail"
-                  hint="차량 목록에 표시될 대표 이미지"
+                  type="image"
+                  showSizeSelector={true}
+                  defaultSize="vehicle"
+                  hint="권장: 800x500 (16:10 비율) / 투명 배경 PNG는 흰색 배경으로 변환됩니다"
                 />
                 <MultiImageUpload
                   label="추가 이미지"

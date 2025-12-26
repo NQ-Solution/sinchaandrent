@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { optimizeImage, optimizeThumbnail, bufferToBase64, validateImageFile } from '@/lib/image';
+import { optimizeImage, optimizeThumbnail, optimizeImageWithSize, bufferToBase64, validateImageFile, IMAGE_SIZE_PRESETS, ImageSizePreset } from '@/lib/image';
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const type = formData.get('type') as string; // 'thumbnail' or 'image'
+    const sizePreset = formData.get('sizePreset') as ImageSizePreset | null;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -28,6 +29,9 @@ export async function POST(request: NextRequest) {
     let optimizedBuffer: Buffer;
     if (type === 'thumbnail') {
       optimizedBuffer = await optimizeThumbnail(buffer);
+    } else if (sizePreset && sizePreset in IMAGE_SIZE_PRESETS) {
+      // 사이즈 프리셋이 지정된 경우
+      optimizedBuffer = await optimizeImageWithSize(buffer, sizePreset);
     } else {
       optimizedBuffer = await optimizeImage(buffer);
     }

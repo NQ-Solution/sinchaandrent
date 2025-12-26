@@ -54,6 +54,47 @@ export async function optimizeThumbnail(buffer: Buffer): Promise<Buffer> {
     .toBuffer();
 }
 
+// 사이즈 프리셋 정의
+export const IMAGE_SIZE_PRESETS = {
+  vehicle: { width: 800, height: 500, label: '차량 이미지 (800x500)', fit: 'inside' as const },
+  vehicleHD: { width: 1200, height: 750, label: '고화질 (1200x750)', fit: 'inside' as const },
+  banner: { width: 1920, height: 600, label: '배너 (1920x600)', fit: 'cover' as const },
+  original: { width: null, height: null, label: '원본 유지', fit: 'inside' as const },
+};
+
+export type ImageSizePreset = keyof typeof IMAGE_SIZE_PRESETS;
+
+export async function optimizeImageWithSize(
+  buffer: Buffer,
+  preset: ImageSizePreset = 'vehicle'
+): Promise<Buffer> {
+  const config = IMAGE_SIZE_PRESETS[preset];
+
+  // 먼저 메타데이터 확인
+  const metadata = await sharp(buffer).metadata();
+
+  let sharpInstance = sharp(buffer);
+
+  // 투명 배경이 있는 경우 (PNG, WebP, GIF 등) 흰색 배경으로 변환
+  if (metadata.hasAlpha) {
+    sharpInstance = sharpInstance.flatten({ background: { r: 255, g: 255, b: 255 } });
+  }
+
+  // 원본 유지가 아닌 경우에만 리사이즈
+  if (config.width && config.height) {
+    sharpInstance = sharpInstance.resize(config.width, config.height, {
+      fit: config.fit,
+      withoutEnlargement: true,
+      background: { r: 255, g: 255, b: 255 }, // 리사이즈 시에도 흰색 배경
+    });
+  }
+
+  // 모든 이미지를 JPEG로 변환 (최적화)
+  return sharpInstance
+    .jpeg({ quality: 85, progressive: true })
+    .toBuffer();
+}
+
 export async function bufferToBase64(buffer: Buffer, mimeType: string = 'image/jpeg'): Promise<string> {
   const base64 = buffer.toString('base64');
   return `data:${mimeType};base64,${base64}`;

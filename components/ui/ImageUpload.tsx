@@ -2,8 +2,18 @@
 
 import { useState, useRef } from 'react';
 import Image from 'next/image';
-import { Upload, Link2, X, Plus, Loader2 } from 'lucide-react';
+import { Upload, Link2, X, Plus, Loader2, Settings2 } from 'lucide-react';
 import { Button } from './Button';
+
+// 사이즈 프리셋 (서버와 동일하게 유지)
+const SIZE_PRESETS = {
+  vehicle: { label: '차량 이미지 (800x500)', description: '권장' },
+  vehicleHD: { label: '고화질 (1200x750)', description: 'Retina 대응' },
+  banner: { label: '배너 (1920x600)', description: '메인 배너용' },
+  original: { label: '원본 유지', description: '리사이즈 없음' },
+} as const;
+
+type SizePreset = keyof typeof SIZE_PRESETS;
 
 interface ImageUploadProps {
   label: string;
@@ -11,12 +21,24 @@ interface ImageUploadProps {
   onChange: (url: string) => void;
   type?: 'thumbnail' | 'image';
   hint?: string;
+  showSizeSelector?: boolean;
+  defaultSize?: SizePreset;
 }
 
-export function ImageUpload({ label, value, onChange, type = 'image', hint }: ImageUploadProps) {
+export function ImageUpload({
+  label,
+  value,
+  onChange,
+  type = 'image',
+  hint,
+  showSizeSelector = false,
+  defaultSize = 'vehicle'
+}: ImageUploadProps) {
   const [mode, setMode] = useState<'file' | 'url'>('file');
   const [urlInput, setUrlInput] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<SizePreset>(defaultSize);
+  const [showSizeOptions, setShowSizeOptions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (file: File) => {
@@ -25,6 +47,9 @@ export function ImageUpload({ label, value, onChange, type = 'image', hint }: Im
       const formData = new FormData();
       formData.append('file', file);
       formData.append('type', type);
+      if (showSizeSelector && type !== 'thumbnail') {
+        formData.append('sizePreset', selectedSize);
+      }
 
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
@@ -76,7 +101,7 @@ export function ImageUpload({ label, value, onChange, type = 'image', hint }: Im
       <label className="block text-sm font-medium text-gray-700">{label}</label>
 
       {/* Mode Toggle */}
-      <div className="flex gap-2 mb-3">
+      <div className="flex flex-wrap gap-2 mb-3">
         <button
           type="button"
           onClick={() => setMode('file')}
@@ -101,6 +126,47 @@ export function ImageUpload({ label, value, onChange, type = 'image', hint }: Im
           <Link2 className="w-4 h-4" />
           URL 입력
         </button>
+
+        {/* Size Selector */}
+        {showSizeSelector && type !== 'thumbnail' && (
+          <div className="relative ml-auto">
+            <button
+              type="button"
+              onClick={() => setShowSizeOptions(!showSizeOptions)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all border border-blue-200"
+            >
+              <Settings2 className="w-4 h-4" />
+              {SIZE_PRESETS[selectedSize].label}
+            </button>
+
+            {showSizeOptions && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setShowSizeOptions(false)}
+                />
+                <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg py-1 z-20 min-w-[220px]">
+                  {(Object.keys(SIZE_PRESETS) as SizePreset[]).map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => {
+                        setSelectedSize(key);
+                        setShowSizeOptions(false);
+                      }}
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 flex justify-between items-center gap-3 ${
+                        selectedSize === key ? 'bg-primary/5 text-primary font-medium' : ''
+                      }`}
+                    >
+                      <span>{SIZE_PRESETS[key].label}</span>
+                      <span className="text-xs text-gray-400">{SIZE_PRESETS[key].description}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Preview or Upload Area */}
