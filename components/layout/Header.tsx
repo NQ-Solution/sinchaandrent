@@ -77,7 +77,7 @@ export function Header() {
               priority
             />
             <span className="text-sm sm:text-lg md:text-xl font-bold text-primary">
-              신차앤렌트카
+              신차앤렌트
             </span>
           </Link>
 
