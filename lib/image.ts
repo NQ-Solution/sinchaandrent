@@ -82,6 +82,8 @@ export async function optimizeImageWithSize(
 ): Promise<Buffer> {
   const config = IMAGE_SIZE_PRESETS[preset];
 
+  console.log('[Image] Processing with:', { preset, paddingPercent, config });
+
   // 먼저 메타데이터 확인
   const metadata = await sharp(buffer).metadata();
 

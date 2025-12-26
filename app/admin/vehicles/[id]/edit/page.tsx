@@ -81,6 +81,8 @@ export default function EditVehiclePage() {
     seatingCapacityMax: '',
     thumbnail: '',
     images: [] as string[],
+    imageSizePreset: 'vehicle',
+    imagePadding: 0,
     basePrice: '',
     // 보증금 0%
     rentPrice60_0: '',
@@ -147,6 +149,8 @@ export default function EditVehiclePage() {
           seatingCapacityMax: vehicle.seatingCapacityMax?.toString() || '',
           thumbnail: vehicle.thumbnail || '',
           images: vehicle.images || [],
+          imageSizePreset: vehicle.imageSizePreset || 'vehicle',
+          imagePadding: vehicle.imagePadding || 0,
           basePrice: vehicle.basePrice?.toString() || '',
           // 보증금 0%
           rentPrice60_0: vehicle.rentPrice60_0?.toString() || '',
@@ -533,7 +537,13 @@ export default function EditVehiclePage() {
                   onChange={(url) => setFormData({ ...formData, thumbnail: url })}
                   type="image"
                   showSizeSelector={true}
-                  defaultSize="vehicle"
+                  sizePreset={formData.imageSizePreset as 'vehicle' | 'vehicleHD' | 'banner' | 'original'}
+                  padding={formData.imagePadding}
+                  onSettingsChange={(settings) => setFormData({
+                    ...formData,
+                    imageSizePreset: settings.sizePreset,
+                    imagePadding: settings.padding,
+                  })}
                   hint="권장: 800x500 (16:10 비율) / 투명 배경 PNG는 흰색 배경으로 변환됩니다"
                 />
                 <MultiImageUpload
@@ -541,7 +551,15 @@ export default function EditVehiclePage() {
                   values={formData.images}
                   onChange={(urls) => setFormData({ ...formData, images: urls })}
                   maxImages={10}
-                  hint="상세 페이지에 표시될 추가 이미지 (최대 10장)"
+                  showSizeSelector={true}
+                  sizePreset={formData.imageSizePreset as 'vehicle' | 'vehicleHD' | 'banner' | 'original'}
+                  padding={formData.imagePadding}
+                  onSettingsChange={(settings) => setFormData({
+                    ...formData,
+                    imageSizePreset: settings.sizePreset,
+                    imagePadding: settings.padding,
+                  })}
+                  hint="상세 페이지에 표시될 추가 이미지 (최대 10장) / 투명 배경은 흰색으로 변환됩니다"
                 />
               </CardContent>
             </Card>

@@ -89,6 +89,8 @@ export async function POST(request: NextRequest) {
           isActive: data.isActive ?? true,
           thumbnail: data.thumbnail ?? null,
           images: data.images ?? [],
+          imageSizePreset: data.imageSizePreset ?? 'vehicle',
+          imagePadding: data.imagePadding ?? 0,
           sortOrder: 999,
         },
       });
@@ -125,6 +127,8 @@ export async function POST(request: NextRequest) {
         isActive: data.isActive ?? true,
         thumbnail: data.thumbnail ?? null,
         images: data.images ?? [],
+        imageSizePreset: data.imageSizePreset ?? 'vehicle',
+        imagePadding: data.imagePadding ?? 0,
       },
     });
 

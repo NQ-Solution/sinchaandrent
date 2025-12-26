@@ -56,8 +56,10 @@ model Vehicle {
   rentPrice24_50  Int?  // 24개월 보증금 50%
 
   // 이미지 (base64 또는 URL)
-  thumbnail String? // 대표 이미지
-  images    String[] // 갤러리 이미지
+  thumbnail       String?  // 대표 이미지
+  images          String[] // 갤러리 이미지
+  imageSizePreset String?  // 이미지 크기 프리셋 (vehicle, vehicleHD, banner, original)
+  imagePadding    Int?     // 이미지 여백 퍼센트 (0, 5, 10, 15, 20)
 
   // 상태
   isPopular Boolean @default(false)

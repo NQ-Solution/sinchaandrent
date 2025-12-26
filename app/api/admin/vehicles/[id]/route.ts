@@ -102,6 +102,8 @@ export async function PUT(
           isActive: data.isActive,
           thumbnail: data.thumbnail,
           images: data.images,
+          imageSizePreset: data.imageSizePreset,
+          imagePadding: data.imagePadding,
         },
       });
       return NextResponse.json(vehicle);
@@ -138,6 +140,8 @@ export async function PUT(
         isActive: data.isActive,
         thumbnail: data.thumbnail,
         images: data.images,
+        imageSizePreset: data.imageSizePreset,
+        imagePadding: data.imagePadding,
       },
     });
 

@@ -44,6 +44,8 @@ export interface Vehicle {
   rentPrice24_50?: number | null;
   thumbnail?: string | null;
   images: string[];
+  imageSizePreset?: string | null;
+  imagePadding?: number | null;
   isPopular: boolean;
   isNew: boolean;
   isActive: boolean;

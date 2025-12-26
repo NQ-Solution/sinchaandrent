@@ -43,10 +43,14 @@ const mockVehicle: Vehicle = {
   rentPrice24_50: 600000,
   thumbnail: '/images/test-car.jpg',
   images: ['/images/test-car-1.jpg', '/images/test-car-2.jpg'],
+  imageSizePreset: 'vehicle',
+  imagePadding: 0,
   isPopular: true,
   isNew: true,
   isActive: true,
   sortOrder: 1,
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
 };
 
 describe('VehicleCard', () => {

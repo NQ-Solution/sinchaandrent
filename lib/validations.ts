@@ -47,6 +47,8 @@ export const VehicleSchema = z.object({
   rentPrice24_50: z.number().int().min(0).nullable().optional(),
   thumbnail: z.string().nullable().optional(),
   images: z.array(z.string()).default([]),
+  imageSizePreset: z.string().nullable().optional(),
+  imagePadding: z.number().int().min(0).max(50).nullable().optional(),
   isPopular: z.boolean().default(false),
   isNew: z.boolean().default(false),
   isActive: z.boolean().default(true),
