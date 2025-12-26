@@ -29,11 +29,27 @@ export async function GET(
         return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
       }
 
+      // 로컬 모드에서도 트림, 색상, 옵션 데이터 가져오기
+      const trims = localDb.trims.findMany({
+        where: { vehicleId: id },
+        orderBy: { sortOrder: 'asc' },
+      });
+
+      const colors = localDb.colors.findMany({
+        where: { vehicleId: id },
+        orderBy: { sortOrder: 'asc' },
+      });
+
+      const options = localDb.options.findMany({
+        where: { vehicleId: id },
+        orderBy: { sortOrder: 'asc' },
+      });
+
       return NextResponse.json({
         ...vehicle,
-        trims: [],
-        colors: [],
-        options: [],
+        trims,
+        colors,
+        options,
       });
     }
 

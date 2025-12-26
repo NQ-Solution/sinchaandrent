@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { localDb } from '@/lib/db';
+import prisma from '@/lib/prisma';
+import { localDb, DB_MODE } from '@/lib/db';
 
 // 캐싱 방지
 export const dynamic = 'force-dynamic';
@@ -17,14 +18,33 @@ export async function GET(
 
   try {
     const { id } = await params;
-    const colors = localDb.colors.findMany({
+
+    if (DB_MODE === 'local') {
+      const colors = localDb.colors.findMany({
+        where: { vehicleId: id },
+        orderBy: { sortOrder: 'asc' },
+      });
+      return NextResponse.json(colors);
+    }
+
+    const colors = await prisma.color.findMany({
       where: { vehicleId: id },
       orderBy: { sortOrder: 'asc' },
     });
     return NextResponse.json(colors);
   } catch (error) {
     console.error('Error fetching colors:', error);
-    return NextResponse.json({ error: 'Failed to fetch colors' }, { status: 500 });
+    // Fallback to local
+    try {
+      const { id } = await params;
+      const colors = localDb.colors.findMany({
+        where: { vehicleId: id },
+        orderBy: { sortOrder: 'asc' },
+      });
+      return NextResponse.json(colors);
+    } catch {
+      return NextResponse.json({ error: 'Failed to fetch colors' }, { status: 500 });
+    }
   }
 }
 
@@ -41,7 +61,21 @@ export async function POST(
     const { id } = await params;
     const data = await request.json();
 
-    const color = localDb.colors.create({
+    if (DB_MODE === 'local') {
+      const color = localDb.colors.create({
+        data: {
+          vehicleId: id,
+          type: data.type,
+          name: data.name,
+          hexCode: data.hexCode || '#000000',
+          price: data.price || 0,
+          sortOrder: data.sortOrder || 999,
+        },
+      });
+      return NextResponse.json(color, { status: 201 });
+    }
+
+    const color = await prisma.color.create({
       data: {
         vehicleId: id,
         type: data.type,
@@ -72,14 +106,29 @@ export async function PUT(
     const data = await request.json();
     const { colorId, ...updateData } = data;
 
-    const color = localDb.colors.update({
-      where: { id: colorId },
-      data: updateData,
-    });
+    if (DB_MODE === 'local') {
+      const color = localDb.colors.update({
+        where: { id: colorId },
+        data: updateData,
+      });
 
-    if (!color) {
-      return NextResponse.json({ error: 'Color not found' }, { status: 404 });
+      if (!color) {
+        return NextResponse.json({ error: 'Color not found' }, { status: 404 });
+      }
+
+      return NextResponse.json(color);
     }
+
+    const color = await prisma.color.update({
+      where: { id: colorId },
+      data: {
+        type: updateData.type,
+        name: updateData.name,
+        hexCode: updateData.hexCode,
+        price: updateData.price,
+        sortOrder: updateData.sortOrder,
+      },
+    });
 
     return NextResponse.json(color);
   } catch (error) {
@@ -105,11 +154,19 @@ export async function DELETE(
       return NextResponse.json({ error: 'colorId is required' }, { status: 400 });
     }
 
-    const success = localDb.colors.delete({ where: { id: colorId } });
+    if (DB_MODE === 'local') {
+      const success = localDb.colors.delete({ where: { id: colorId } });
 
-    if (!success) {
-      return NextResponse.json({ error: 'Color not found' }, { status: 404 });
+      if (!success) {
+        return NextResponse.json({ error: 'Color not found' }, { status: 404 });
+      }
+
+      return NextResponse.json({ success: true });
     }
+
+    await prisma.color.delete({
+      where: { id: colorId },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

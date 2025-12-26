@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { localDb } from '@/lib/db';
+import prisma from '@/lib/prisma';
+import { localDb, DB_MODE } from '@/lib/db';
 
 // 캐싱 방지
 export const dynamic = 'force-dynamic';
@@ -17,14 +18,33 @@ export async function GET(
 
   try {
     const { id } = await params;
-    const trims = localDb.trims.findMany({
+
+    if (DB_MODE === 'local') {
+      const trims = localDb.trims.findMany({
+        where: { vehicleId: id },
+        orderBy: { sortOrder: 'asc' },
+      });
+      return NextResponse.json(trims);
+    }
+
+    const trims = await prisma.trim.findMany({
       where: { vehicleId: id },
       orderBy: { sortOrder: 'asc' },
     });
     return NextResponse.json(trims);
   } catch (error) {
     console.error('Error fetching trims:', error);
-    return NextResponse.json({ error: 'Failed to fetch trims' }, { status: 500 });
+    // Fallback to local
+    try {
+      const { id } = await params;
+      const trims = localDb.trims.findMany({
+        where: { vehicleId: id },
+        orderBy: { sortOrder: 'asc' },
+      });
+      return NextResponse.json(trims);
+    } catch {
+      return NextResponse.json({ error: 'Failed to fetch trims' }, { status: 500 });
+    }
   }
 }
 
@@ -41,7 +61,20 @@ export async function POST(
     const { id } = await params;
     const data = await request.json();
 
-    const trim = localDb.trims.create({
+    if (DB_MODE === 'local') {
+      const trim = localDb.trims.create({
+        data: {
+          vehicleId: id,
+          name: data.name,
+          price: data.price || 0,
+          description: data.description || null,
+          sortOrder: data.sortOrder || 999,
+        },
+      });
+      return NextResponse.json(trim, { status: 201 });
+    }
+
+    const trim = await prisma.trim.create({
       data: {
         vehicleId: id,
         name: data.name,
@@ -71,14 +104,28 @@ export async function PUT(
     const data = await request.json();
     const { trimId, ...updateData } = data;
 
-    const trim = localDb.trims.update({
-      where: { id: trimId },
-      data: updateData,
-    });
+    if (DB_MODE === 'local') {
+      const trim = localDb.trims.update({
+        where: { id: trimId },
+        data: updateData,
+      });
 
-    if (!trim) {
-      return NextResponse.json({ error: 'Trim not found' }, { status: 404 });
+      if (!trim) {
+        return NextResponse.json({ error: 'Trim not found' }, { status: 404 });
+      }
+
+      return NextResponse.json(trim);
     }
+
+    const trim = await prisma.trim.update({
+      where: { id: trimId },
+      data: {
+        name: updateData.name,
+        price: updateData.price,
+        description: updateData.description,
+        sortOrder: updateData.sortOrder,
+      },
+    });
 
     return NextResponse.json(trim);
   } catch (error) {
@@ -104,11 +151,19 @@ export async function DELETE(
       return NextResponse.json({ error: 'trimId is required' }, { status: 400 });
     }
 
-    const success = localDb.trims.delete({ where: { id: trimId } });
+    if (DB_MODE === 'local') {
+      const success = localDb.trims.delete({ where: { id: trimId } });
 
-    if (!success) {
-      return NextResponse.json({ error: 'Trim not found' }, { status: 404 });
+      if (!success) {
+        return NextResponse.json({ error: 'Trim not found' }, { status: 404 });
+      }
+
+      return NextResponse.json({ success: true });
     }
+
+    await prisma.trim.delete({
+      where: { id: trimId },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
