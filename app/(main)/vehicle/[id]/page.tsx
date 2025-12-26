@@ -307,7 +307,7 @@ export default function VehicleDetailPage() {
           <div className="grid lg:grid-cols-2 gap-6 lg:gap-10 items-center">
             {/* Image */}
             <div className="order-2 lg:order-1">
-              <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-white/5">
+              <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-white">
                 {allImages.length > 0 ? (
                   <Image
                     src={allImages[selectedImageIndex]}

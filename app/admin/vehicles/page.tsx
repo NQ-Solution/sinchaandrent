@@ -298,7 +298,7 @@ export default function AdminVehiclesPage() {
             {filteredVehicles.map((vehicle) => (
               <Card key={vehicle.id} className={`p-3 ${!vehicle.isActive ? 'opacity-60' : ''}`}>
                 <div className="flex gap-3">
-                  <div className="w-20 h-14 bg-gray-100 rounded-lg overflow-hidden relative flex-shrink-0">
+                  <div className="w-20 h-14 bg-white border border-gray-100 rounded-lg overflow-hidden relative flex-shrink-0">
                     {vehicle.thumbnail ? (
                       <Image
                         src={vehicle.thumbnail}
@@ -408,7 +408,7 @@ export default function AdminVehiclesPage() {
                     <tr key={vehicle.id} className={!vehicle.isActive ? 'bg-gray-50 opacity-60' : ''}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-4">
-                          <div className="w-16 h-12 bg-gray-100 rounded-lg overflow-hidden relative flex-shrink-0">
+                          <div className="w-16 h-12 bg-white border border-gray-100 rounded-lg overflow-hidden relative flex-shrink-0">
                             {vehicle.thumbnail ? (
                               <Image
                                 src={vehicle.thumbnail}

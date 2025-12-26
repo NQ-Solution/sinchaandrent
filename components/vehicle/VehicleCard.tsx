@@ -13,7 +13,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
     <Link href={`/vehicle/${vehicle.id}`} className="group block">
       <div className="relative bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-gray-100 hover:border-primary/30 hover:shadow-xl transition-all duration-300">
         {/* 이미지 영역 */}
-        <div className="relative aspect-[16/10] bg-gray-100 overflow-hidden">
+        <div className="relative aspect-[16/10] bg-white overflow-hidden">
           {vehicle.thumbnail ? (
             <Image
               src={vehicle.thumbnail}

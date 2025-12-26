@@ -108,7 +108,7 @@ export default function AdminPopularPage() {
               popularVehicles.map((vehicle, index) => (
                 <div key={vehicle.id} className="p-3 md:p-4 flex items-center gap-2 md:gap-4">
                   <span className="text-base md:text-lg font-bold text-gray-400 w-5 md:w-6 flex-shrink-0">{index + 1}</span>
-                  <div className="w-12 h-9 md:w-16 md:h-12 bg-gray-100 rounded-lg overflow-hidden relative flex-shrink-0">
+                  <div className="w-12 h-9 md:w-16 md:h-12 bg-white border border-gray-100 rounded-lg overflow-hidden relative flex-shrink-0">
                     {vehicle.thumbnail ? (
                       <Image
                         src={vehicle.thumbnail}
@@ -163,7 +163,7 @@ export default function AdminPopularPage() {
             {availableVehicles.length > 0 ? (
               availableVehicles.map((vehicle) => (
                 <div key={vehicle.id} className="p-3 md:p-4 flex items-center gap-2 md:gap-4">
-                  <div className="w-12 h-9 md:w-16 md:h-12 bg-gray-100 rounded-lg overflow-hidden relative flex-shrink-0">
+                  <div className="w-12 h-9 md:w-16 md:h-12 bg-white border border-gray-100 rounded-lg overflow-hidden relative flex-shrink-0">
                     {vehicle.thumbnail ? (
                       <Image
                         src={vehicle.thumbnail}

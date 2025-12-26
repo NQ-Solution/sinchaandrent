@@ -93,7 +93,7 @@ function VehicleListCard({ vehicle, isCompareSelected, onToggleCompare }: {
       <div className="flex flex-col sm:flex-row">
         {/* 이미지 */}
         <Link href={`/vehicle/${vehicle.id}`} className="sm:w-72 flex-shrink-0">
-          <div className="relative aspect-[16/10] sm:aspect-[4/3] bg-gray-100">
+          <div className="relative aspect-[16/10] sm:aspect-[4/3] bg-white">
             {vehicle.thumbnail ? (
               <Image
                 src={vehicle.thumbnail}

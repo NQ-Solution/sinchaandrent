@@ -151,7 +151,7 @@ function CompareContent() {
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="aspect-[16/10] bg-gray-100 relative">
+              <div className="aspect-[16/10] bg-white relative">
                 {vehicle.thumbnail ? (
                   <Image
                     src={vehicle.thumbnail}
@@ -338,7 +338,7 @@ function CompareContent() {
                       onClick={() => addVehicle(vehicle)}
                       className="w-full flex items-center gap-4 p-3 rounded-xl border hover:border-primary hover:bg-primary/5 transition-all text-left"
                     >
-                      <div className="w-16 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                      <div className="w-16 h-12 bg-white rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
                         {vehicle.thumbnail ? (
                           <Image
                             src={vehicle.thumbnail}
