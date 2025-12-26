@@ -94,31 +94,52 @@ export async function optimizeImageWithSize(
 
   // 원본 유지가 아닌 경우에만 리사이즈
   if (config.width && config.height) {
-    // 패딩이 있는 경우 이미지를 더 작게 리사이즈
-    const paddingRatio = paddingPercent / 100;
-    const innerWidth = Math.round(config.width * (1 - paddingRatio * 2));
-    const innerHeight = Math.round(config.height * (1 - paddingRatio * 2));
-
-    sharpInstance = sharpInstance.resize(innerWidth, innerHeight, {
-      fit: 'inside',
-      withoutEnlargement: true,
-      background: { r: 255, g: 255, b: 255 },
-    });
-
-    // 패딩이 있는 경우 최종 크기로 확장 (흰색 배경으로 중앙 배치)
     if (paddingPercent > 0) {
-      sharpInstance = sharpInstance.extend({
-        top: Math.round((config.height - innerHeight) / 2),
-        bottom: Math.round((config.height - innerHeight) / 2),
-        left: Math.round((config.width - innerWidth) / 2),
-        right: Math.round((config.width - innerWidth) / 2),
-        background: { r: 255, g: 255, b: 255 },
+      // 패딩이 있는 경우: 이미지를 작게 만들고 흰색 캔버스 중앙에 배치
+      const paddingRatio = paddingPercent / 100;
+      const innerWidth = Math.round(config.width * (1 - paddingRatio * 2));
+      const innerHeight = Math.round(config.height * (1 - paddingRatio * 2));
+
+      // 1단계: 이미지를 작은 크기로 리사이즈
+      const resizedBuffer = await sharpInstance
+        .resize(innerWidth, innerHeight, {
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .jpeg({ quality: 85 })
+        .toBuffer();
+
+      // 2단계: 리사이즈된 이미지의 실제 크기 확인
+      const resizedMeta = await sharp(resizedBuffer).metadata();
+      const actualWidth = resizedMeta.width || innerWidth;
+      const actualHeight = resizedMeta.height || innerHeight;
+
+      // 3단계: 흰색 배경 캔버스 생성 후 이미지를 중앙에 합성
+      const canvas = sharp({
+        create: {
+          width: config.width,
+          height: config.height,
+          channels: 3,
+          background: { r: 255, g: 255, b: 255 },
+        },
       });
 
-      // 정확한 최종 크기로 조정
+      return canvas
+        .composite([
+          {
+            input: resizedBuffer,
+            left: Math.round((config.width - actualWidth) / 2),
+            top: Math.round((config.height - actualHeight) / 2),
+          },
+        ])
+        .jpeg({ quality: 85, progressive: true })
+        .toBuffer();
+    } else {
+      // 패딩 없음: 기존 방식으로 리사이즈
       sharpInstance = sharpInstance.resize(config.width, config.height, {
-        fit: 'cover',
-        position: 'center',
+        fit: 'inside',
+        withoutEnlargement: true,
+        background: { r: 255, g: 255, b: 255 },
       });
     }
   }
