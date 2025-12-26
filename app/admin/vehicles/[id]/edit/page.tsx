@@ -1018,7 +1018,7 @@ export default function EditVehiclePage() {
                                 <input
                                   type="checkbox"
                                   checked={isSelected}
-                                  onChange={(e) => toggleTrimOption(selectedTrimIndex, option.id || '', false)}
+                                  onChange={() => toggleTrimOption(selectedTrimIndex, option.id || '', false)}
                                   className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
                                 />
                                 <div className="flex-1">

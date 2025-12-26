@@ -156,7 +156,7 @@ export default function VehicleDetailPage() {
       setAvailableOptions([]);
       setSelectedOptions([]);
     }
-  }, [selectedTrim]);
+  }, [selectedTrim, selectedExterior?.id, selectedInterior?.id]);
 
   useEffect(() => {
     if (showMobileSummary) {
