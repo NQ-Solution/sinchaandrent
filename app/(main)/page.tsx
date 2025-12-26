@@ -158,14 +158,14 @@ export default async function HomePage() {
   return (
     <div className="pt-16 md:pt-20 overflow-hidden">
       {/* Hero Section - 풀스크린 임팩트 */}
-      <section className="relative min-h-[90vh] bg-gray-900 flex items-center">
+      <section className="relative min-h-[90vh] bg-gradient-to-br from-gray-800 via-gray-850 to-gray-900 flex items-center">
         {/* 배경 비디오/이미지 자리 */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900/95 to-primary/30" />
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-800/90 via-gray-850/95 to-primary/20" />
           {/* 애니메이션 배경 패턴 */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-primary/40 rounded-full blur-[100px] animate-pulse" />
-            <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-blue-500/30 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-primary/50 rounded-full blur-[120px] animate-pulse" />
+            <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-blue-400/40 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
           </div>
         </div>
 
@@ -181,7 +181,7 @@ export default async function HomePage() {
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-4 sm:mb-6 leading-[1.15] break-keep">
               새 차, 더 스마트하게
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-300 via-primary to-blue-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-primary-400 to-pink-400 animate-gradient">
                 시작하세요
               </span>
             </h1>
@@ -447,49 +447,68 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CTA 섹션 */}
-      <section className="relative py-16 sm:py-20 md:py-32 overflow-hidden">
-        {/* 배경 */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary-600 to-blue-600" />
+      {/* CTA 섹션 - 하단 고정형 디자인 */}
+      <section className="relative py-20 sm:py-24 md:py-32 overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-primary/30">
+        {/* 배경 효과 */}
         <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-48 sm:w-80 h-48 sm:h-80 bg-primary-300/20 rounded-full blur-3xl" />
+          <div className="absolute top-0 left-1/3 w-96 h-96 bg-primary/30 rounded-full blur-[150px] animate-pulse" />
+          <div className="absolute bottom-0 right-1/3 w-80 h-80 bg-blue-500/20 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '1.5s' }} />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.03),transparent_50%)]" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-4 sm:mb-6 leading-tight break-keep">
+          <div className="max-w-4xl mx-auto">
+            {/* 상단 뱃지 */}
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 backdrop-blur-sm text-primary-300 text-sm px-5 py-2.5 rounded-full border border-primary/20">
+                <Phone className="w-4 h-4" />
+                <span className="font-semibold">무료 상담 신청</span>
+              </div>
+            </div>
+
+            {/* 메인 타이틀 */}
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-black text-white mb-6 sm:mb-8 leading-tight break-keep text-center">
               지금 바로 상담받고
               <br />
-              <span className="text-primary-200">새 차 시작하세요</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-primary-400 to-pink-400">
+                새 차 시작하세요
+              </span>
             </h2>
 
-            <p className="text-base sm:text-lg text-white/80 mb-8 sm:mb-10 max-w-lg mx-auto px-2 break-keep">
+            <p className="text-base sm:text-xl text-gray-300 mb-10 sm:mb-12 max-w-2xl mx-auto px-2 break-keep text-center leading-relaxed">
               전문 상담원이 고객님께 딱 맞는 렌트 조건을 안내해드립니다.
-              부담없이 문의하세요!
+              <br className="hidden sm:block" />
+              부담없이 <strong className="text-white">지금 바로</strong> 문의하세요!
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
-              <Button asChild size="lg" className="bg-white text-primary hover:bg-gray-100 rounded-full px-8 sm:px-10 font-bold text-base sm:text-lg h-12 sm:h-14 shadow-xl">
-                <a href={`tel:${phoneNumber}`} className="flex items-center justify-center gap-2 sm:gap-3">
-                  <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
+            {/* CTA 버튼 그룹 */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center px-4 sm:px-0 mb-10">
+              <Button asChild size="lg" className="group bg-white text-gray-900 hover:bg-gray-100 rounded-full px-10 sm:px-12 font-bold text-base sm:text-xl h-14 sm:h-16 shadow-2xl hover:shadow-white/20 transition-all">
+                <a href={`tel:${phoneNumber}`} className="flex items-center justify-center gap-3">
+                  <Phone className="w-6 h-6 group-hover:animate-bounce" />
                   <span className="whitespace-nowrap">{phoneNumber}</span>
                 </a>
               </Button>
-              <Button asChild size="lg" className="bg-[#FEE500] text-[#3C1E1E] hover:bg-yellow-300 rounded-full px-8 sm:px-10 font-bold text-base sm:text-lg h-12 sm:h-14 shadow-xl">
-                <a href={kakaoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 sm:gap-3">
-                  <KakaoIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+              <Button asChild size="lg" className="group bg-[#FEE500] text-[#3C1E1E] hover:bg-yellow-400 rounded-full px-10 sm:px-12 font-bold text-base sm:text-xl h-14 sm:h-16 shadow-2xl hover:shadow-yellow-500/30 transition-all">
+                <a href={kakaoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3">
+                  <KakaoIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
                   카카오톡 상담
                 </a>
               </Button>
             </div>
 
-            <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row flex-wrap justify-center gap-2 sm:gap-6 text-white/60 text-xs sm:text-sm">
-              <span>평일 09:00 - 18:00</span>
-              <span className="hidden sm:inline">|</span>
-              <span>토요일 09:00 - 13:00</span>
-              <span className="hidden sm:inline">|</span>
-              <span>일요일/공휴일 휴무</span>
+            {/* 운영 시간 */}
+            <div className="text-center">
+              <div className="inline-flex flex-col sm:flex-row flex-wrap justify-center gap-2 sm:gap-6 text-gray-400 text-sm bg-white/5 backdrop-blur-sm rounded-full px-6 py-3 border border-white/10">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  <span>평일 09:00 - 18:00</span>
+                </div>
+                <span className="hidden sm:inline text-gray-600">|</span>
+                <span>토요일 09:00 - 13:00</span>
+                <span className="hidden sm:inline text-gray-600">|</span>
+                <span>일요일/공휴일 휴무</span>
+              </div>
             </div>
           </div>
         </div>

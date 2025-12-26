@@ -29,10 +29,11 @@ interface CompanyInfo {
 export function Footer() {
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({});
   const [loanBrokerDocuments, setLoanBrokerDocuments] = useState<LoanBrokerDocument[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const phoneNumber = companyInfo.phone || process.env.NEXT_PUBLIC_PHONE_NUMBER || '1588-0000';
-  const kakaoUrl = companyInfo.kakaoChannelUrl || process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || '#';
-  const youtubeUrl = companyInfo.youtubeUrl || process.env.NEXT_PUBLIC_YOUTUBE_URL || '#';
+  const phoneNumber = companyInfo.phone || '';
+  const kakaoUrl = companyInfo.kakaoChannelUrl || '#';
+  const youtubeUrl = companyInfo.youtubeUrl || '#';
 
   useEffect(() => {
     async function fetchCompanyInfo() {
@@ -61,6 +62,8 @@ export function Footer() {
         }
       } catch (error) {
         console.error('Failed to fetch company info:', error);
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchCompanyInfo();
@@ -146,9 +149,15 @@ export function Footer() {
             <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
               <li>
                 <span className="text-gray-400">전화: </span>
-                <a href={`tel:${phoneNumber}`} className="hover:text-white transition-colors">
-                  {phoneNumber}
-                </a>
+                {isLoading ? (
+                  <span className="text-gray-500">로딩 중...</span>
+                ) : phoneNumber ? (
+                  <a href={`tel:${phoneNumber}`} className="hover:text-white transition-colors">
+                    {phoneNumber}
+                  </a>
+                ) : (
+                  <span className="text-gray-500">정보 없음</span>
+                )}
               </li>
               <li>
                 <span className="text-gray-400">상담: </span>

@@ -24,10 +24,11 @@ interface CompanyInfo {
 
 export function FloatingCTA() {
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({});
+  const [isLoading, setIsLoading] = useState(true);
 
-  const phoneNumber = companyInfo.phone || process.env.NEXT_PUBLIC_PHONE_NUMBER || '1588-0000';
-  const kakaoUrl = companyInfo.kakaoChannelUrl || process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || '#';
-  const youtubeUrl = companyInfo.youtubeUrl || process.env.NEXT_PUBLIC_YOUTUBE_URL || 'https://www.youtube.com';
+  const phoneNumber = companyInfo.phone || '';
+  const kakaoUrl = companyInfo.kakaoChannelUrl || '#';
+  const youtubeUrl = companyInfo.youtubeUrl || 'https://www.youtube.com';
 
   useEffect(() => {
     async function fetchCompanyInfo() {
@@ -39,6 +40,8 @@ export function FloatingCTA() {
         }
       } catch (error) {
         console.error('Failed to fetch company info:', error);
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchCompanyInfo();
@@ -98,23 +101,25 @@ export function FloatingCTA() {
 
       {/* 전화 상담 */}
       <div className="relative">
-        {showPhoneTooltip && (
+        {showPhoneTooltip && phoneNumber && (
           <div className="absolute right-16 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg whitespace-nowrap shadow-lg animate-fade-in">
             <div className="font-medium">전화 상담</div>
             <div className="text-primary text-xs mt-0.5">{phoneNumber}</div>
             <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 w-2 h-2 bg-gray-900 rotate-45" />
           </div>
         )}
-        <a
-          href={`tel:${phoneNumber}`}
-          className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-200"
-          aria-label="전화 상담"
-          onMouseEnter={() => setShowPhoneTooltip(true)}
-          onMouseLeave={() => setShowPhoneTooltip(false)}
-          onClick={() => setShowPhoneTooltip(false)}
-        >
-          <Phone className="w-6 h-6" />
-        </a>
+        {!isLoading && phoneNumber && (
+          <a
+            href={`tel:${phoneNumber}`}
+            className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-200"
+            aria-label="전화 상담"
+            onMouseEnter={() => setShowPhoneTooltip(true)}
+            onMouseLeave={() => setShowPhoneTooltip(false)}
+            onClick={() => setShowPhoneTooltip(false)}
+          >
+            <Phone className="w-6 h-6" />
+          </a>
+        )}
       </div>
     </div>
   );

@@ -24,18 +24,35 @@ const config: Config = {
           800: "#162c47",
           900: "#0f1e30",
         },
+        gray: {
+          850: "#1a202e",
+        },
       },
       fontFamily: {
         sans: ["var(--font-noto-sans-kr)", "system-ui", "sans-serif"],
       },
       animation: {
         'fade-in': 'fadeIn 0.2s ease-out',
+        'gradient': 'gradient 8s ease infinite',
       },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0', transform: 'translateX(10px) translateY(-50%)' },
           '100%': { opacity: '1', transform: 'translateX(0) translateY(-50%)' },
         },
+        gradient: {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center',
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center',
+          },
+        },
+      },
+      backgroundSize: {
+        '200%': '200% 200%',
       },
     },
   },
