@@ -89,6 +89,10 @@ enum VehicleCategory {
   TRUCK
   VAN
   EV
+  COMPACT
+  HATCHBACK
+  COUPE
+  CONVERTIBLE
 }
 
 // FuelType은 더 이상 enum이 아닌 String 배열로 저장됨

@@ -28,6 +28,10 @@ export function getCategoryLabel(category: string): string {
     TRUCK: '트럭',
     VAN: '밴',
     EV: '전기차',
+    COMPACT: '소형',
+    HATCHBACK: '해치백',
+    COUPE: '쿠페',
+    CONVERTIBLE: '컨버터블/오픈카',
   };
   return labels[category] || category;
 }

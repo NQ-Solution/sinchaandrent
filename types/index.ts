@@ -1,4 +1,4 @@
-export type VehicleCategory = 'SEDAN' | 'SUV' | 'TRUCK' | 'VAN' | 'EV';
+export type VehicleCategory = 'SEDAN' | 'SUV' | 'TRUCK' | 'VAN' | 'EV' | 'COMPACT' | 'HATCHBACK' | 'COUPE' | 'CONVERTIBLE';
 export type FuelType = 'GASOLINE' | 'DIESEL' | 'HYBRID' | 'EV' | 'LPG';
 export type ColorType = 'EXTERIOR' | 'INTERIOR';
 export type RentPeriod = 24 | 36 | 48 | 60;

@@ -35,6 +35,10 @@ interface OptionData {
 const categories: { value: VehicleCategory; label: string }[] = [
   { value: 'SEDAN', label: '세단' },
   { value: 'SUV', label: 'SUV' },
+  { value: 'COMPACT', label: '소형' },
+  { value: 'HATCHBACK', label: '해치백' },
+  { value: 'COUPE', label: '쿠페' },
+  { value: 'CONVERTIBLE', label: '컨버터블/오픈카' },
   { value: 'TRUCK', label: '트럭' },
   { value: 'VAN', label: '밴' },
   { value: 'EV', label: '전기차' },

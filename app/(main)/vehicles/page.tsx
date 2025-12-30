@@ -16,11 +16,15 @@ import { formatPrice, getCategoryLabel } from '@/lib/utils';
 import type { Brand, Vehicle } from '@/types';
 
 const CATEGORIES = [
-  { value: 'SEDAN', label: '세단', icon: '🚗' },
-  { value: 'SUV', label: 'SUV', icon: '🚙' },
-  { value: 'VAN', label: 'RV/미니밴', icon: '🚐' },
-  { value: 'EV', label: '전기차', icon: '⚡' },
-  { value: 'TRUCK', label: '픽업/트럭', icon: '🛻' },
+  { value: 'SEDAN', label: '세단' },
+  { value: 'SUV', label: 'SUV' },
+  { value: 'COMPACT', label: '소형' },
+  { value: 'HATCHBACK', label: '해치백' },
+  { value: 'COUPE', label: '쿠페' },
+  { value: 'CONVERTIBLE', label: '컨버터블/오픈카' },
+  { value: 'VAN', label: 'RV/미니밴' },
+  { value: 'EV', label: '전기차' },
+  { value: 'TRUCK', label: '픽업/트럭' },
 ];
 const FUEL_TYPES = [
   { value: 'GASOLINE', label: '휘발유' },
