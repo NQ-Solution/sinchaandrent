@@ -45,6 +45,8 @@ const mockVehicle: Vehicle = {
   images: ['/images/test-car-1.jpg', '/images/test-car-2.jpg'],
   imageSizePreset: 'vehicle',
   imagePadding: 0,
+  baseModelName: '가솔린 1.6',
+  hasOtherModels: true,
   isPopular: true,
   isNew: true,
   isActive: true,

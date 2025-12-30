@@ -15,6 +15,7 @@ interface VehicleWithBrand {
   category: string;
   rentPrice60_0: number | null;
   isPopular: boolean;
+  sortOrder: number;
   brand: {
     nameKr: string;
   };
@@ -30,9 +31,10 @@ export default function AdminPopularPage() {
       const res = await fetch('/api/vehicles?all=true');
       const vehicles: VehicleWithBrand[] = await res.json();
 
+      // 인기 차량은 sortOrder로 정렬
       const popular = vehicles
         .filter(v => v.isPopular)
-        .sort((a, b) => a.name.localeCompare(b.name));
+        .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
       const available = vehicles
         .filter(v => !v.isPopular)
         .sort((a, b) => a.name.localeCompare(b.name));
@@ -75,6 +77,42 @@ export default function AdminPopularPage() {
 
   const removeFromPopular = (vehicleId: string) => {
     togglePopular(vehicleId, false);
+  };
+
+  // 순서 변경 함수
+  const moveOrder = async (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= popularVehicles.length) return;
+
+    const newList = [...popularVehicles];
+    const temp = newList[index];
+    newList[index] = newList[newIndex];
+    newList[newIndex] = temp;
+
+    // UI 즉시 업데이트
+    setPopularVehicles(newList);
+
+    // 서버에 순서 업데이트
+    try {
+      const updates = newList.map((vehicle, idx) => ({
+        id: vehicle.id,
+        sortOrder: idx,
+      }));
+
+      await Promise.all(
+        updates.map(update =>
+          fetch(`/api/admin/vehicles/${update.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sortOrder: update.sortOrder }),
+          })
+        )
+      );
+    } catch (error) {
+      console.error('Failed to update order:', error);
+      // 실패 시 다시 불러오기
+      fetchVehicles();
+    }
   };
 
   if (loading) {
@@ -129,10 +167,22 @@ export default function AdminPopularPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0">
-                    <Button variant="ghost" size="sm" disabled={index === 0} className="h-8 w-8 p-0 hidden md:flex">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={index === 0}
+                      onClick={() => moveOrder(index, 'up')}
+                      className="h-7 w-7 md:h-8 md:w-8 p-0"
+                    >
                       <ArrowUp className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" disabled={index === popularVehicles.length - 1} className="h-8 w-8 p-0 hidden md:flex">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={index === popularVehicles.length - 1}
+                      onClick={() => moveOrder(index, 'down')}
+                      className="h-7 w-7 md:h-8 md:w-8 p-0"
+                    >
                       <ArrowDown className="w-4 h-4" />
                     </Button>
                     <Button

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Copy, X, Car } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PriceInput } from '@/components/ui/PriceInput';
@@ -17,6 +17,7 @@ interface TrimData {
   name: string;
   price: number;
   description: string;
+  sortOrder: number;
   isNew?: boolean;
   colorIds?: string[];
   optionSettings?: { optionId: string; isIncluded: boolean }[];
@@ -28,6 +29,7 @@ interface ColorData {
   name: string;
   hexCode: string;
   price: number;
+  sortOrder: number;
   isNew?: boolean;
 }
 
@@ -37,6 +39,7 @@ interface OptionData {
   price: number;
   description: string;
   category: string;
+  sortOrder: number;
   isNew?: boolean;
 }
 
@@ -105,6 +108,9 @@ export default function EditVehiclePage() {
     isPopular: false,
     isNew: false,
     isActive: true,
+    // 모델 정보
+    baseModelName: '',
+    hasOtherModels: true,
   });
 
   // Vehicle options
@@ -117,6 +123,12 @@ export default function EditVehiclePage() {
   const [deletedTrims, setDeletedTrims] = useState<string[]>([]);
   const [deletedColors, setDeletedColors] = useState<string[]>([]);
   const [deletedOptions, setDeletedOptions] = useState<string[]>([]);
+
+  // 옵션 불러오기 모달
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importType, setImportType] = useState<'trims' | 'colors' | 'options' | 'all'>('all');
+  const [sameBrandVehicles, setSameBrandVehicles] = useState<Vehicle[]>([]);
+  const [loadingImport, setLoadingImport] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -173,6 +185,9 @@ export default function EditVehiclePage() {
           isPopular: vehicle.isPopular,
           isNew: vehicle.isNew,
           isActive: vehicle.isActive,
+          // 모델 정보
+          baseModelName: vehicle.baseModelName || '',
+          hasOtherModels: vehicle.hasOtherModels ?? true,
         });
 
         // 각 트림의 색상과 옵션 정보 로드
@@ -221,7 +236,30 @@ export default function EditVehiclePage() {
 
   // Trim handlers
   const addTrim = () => {
-    setTrims([...trims, { name: '', price: 0, description: '', isNew: true, colorIds: [], optionSettings: [] }]);
+    const newSortOrder = trims.length > 0 ? Math.max(...trims.map(t => t.sortOrder)) + 1 : 0;
+    setTrims([...trims, { name: '', price: 0, description: '', sortOrder: newSortOrder, isNew: true, colorIds: [], optionSettings: [] }]);
+  };
+
+  const moveTrim = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= trims.length) return;
+
+    const newTrims = [...trims];
+    const temp = newTrims[index];
+    newTrims[index] = newTrims[newIndex];
+    newTrims[newIndex] = temp;
+
+    // sortOrder 재정렬
+    newTrims.forEach((trim, idx) => {
+      trim.sortOrder = idx;
+    });
+
+    setTrims(newTrims);
+    if (selectedTrimIndex === index) {
+      setSelectedTrimIndex(newIndex);
+    } else if (selectedTrimIndex === newIndex) {
+      setSelectedTrimIndex(index);
+    }
   };
 
   const updateTrim = (index: number, field: keyof TrimData, value: string | number | string[] | { optionId: string; isIncluded: boolean }[]) => {
@@ -278,11 +316,35 @@ export default function EditVehiclePage() {
 
   // Color handlers
   const addColor = (type: 'EXTERIOR' | 'INTERIOR') => {
-    const newColor: ColorData = { type, name: '', hexCode: '#000000', price: 0, isNew: true };
     if (type === 'EXTERIOR') {
+      const newSortOrder = exteriorColors.length > 0 ? Math.max(...exteriorColors.map(c => c.sortOrder)) + 1 : 0;
+      const newColor: ColorData = { type, name: '', hexCode: '#000000', price: 0, sortOrder: newSortOrder, isNew: true };
       setExteriorColors([...exteriorColors, newColor]);
     } else {
+      const newSortOrder = interiorColors.length > 0 ? Math.max(...interiorColors.map(c => c.sortOrder)) + 1 : 0;
+      const newColor: ColorData = { type, name: '', hexCode: '#000000', price: 0, sortOrder: newSortOrder, isNew: true };
       setInteriorColors([...interiorColors, newColor]);
+    }
+  };
+
+  const moveColor = (type: 'EXTERIOR' | 'INTERIOR', index: number, direction: 'up' | 'down') => {
+    const colors = type === 'EXTERIOR' ? [...exteriorColors] : [...interiorColors];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= colors.length) return;
+
+    const temp = colors[index];
+    colors[index] = colors[newIndex];
+    colors[newIndex] = temp;
+
+    // sortOrder 재정렬
+    colors.forEach((color, idx) => {
+      color.sortOrder = idx;
+    });
+
+    if (type === 'EXTERIOR') {
+      setExteriorColors(colors);
+    } else {
+      setInteriorColors(colors);
     }
   };
 
@@ -316,7 +378,25 @@ export default function EditVehiclePage() {
 
   // Option handlers
   const addOption = () => {
-    setOptions([...options, { name: '', price: 0, description: '', category: '편의', isNew: true }]);
+    const newSortOrder = options.length > 0 ? Math.max(...options.map(o => o.sortOrder)) + 1 : 0;
+    setOptions([...options, { name: '', price: 0, description: '', category: '편의', sortOrder: newSortOrder, isNew: true }]);
+  };
+
+  const moveOption = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= options.length) return;
+
+    const newOptions = [...options];
+    const temp = newOptions[index];
+    newOptions[index] = newOptions[newIndex];
+    newOptions[newIndex] = temp;
+
+    // sortOrder 재정렬
+    newOptions.forEach((option, idx) => {
+      option.sortOrder = idx;
+    });
+
+    setOptions(newOptions);
   };
 
   const updateOption = (index: number, field: keyof OptionData, value: string | number) => {
@@ -331,6 +411,108 @@ export default function EditVehiclePage() {
       setDeletedOptions([...deletedOptions, option.id]);
     }
     setOptions(options.filter((_, i) => i !== index));
+  };
+
+  // 옵션 불러오기 모달 열기
+  const openImportModal = async (type: 'trims' | 'colors' | 'options' | 'all') => {
+    if (!formData.brandId) {
+      alert('먼저 브랜드를 선택해주세요.');
+      return;
+    }
+
+    setImportType(type);
+    setLoadingImport(true);
+    setShowImportModal(true);
+
+    try {
+      const res = await fetch(`/api/vehicles?all=true`);
+      const allVehicles: Vehicle[] = await res.json();
+      // 같은 브랜드이고 현재 차량이 아닌 것만 필터
+      const filtered = allVehicles.filter(v => v.brandId === formData.brandId && v.id !== id);
+      setSameBrandVehicles(filtered);
+    } catch (error) {
+      console.error('Failed to fetch vehicles:', error);
+    } finally {
+      setLoadingImport(false);
+    }
+  };
+
+  // 선택한 차량에서 옵션 복사
+  const importFromVehicle = async (sourceVehicleId: string) => {
+    setLoadingImport(true);
+
+    try {
+      const [trimsRes, colorsRes, optionsRes] = await Promise.all([
+        fetch(`/api/admin/vehicles/${sourceVehicleId}/trims`),
+        fetch(`/api/admin/vehicles/${sourceVehicleId}/colors`),
+        fetch(`/api/admin/vehicles/${sourceVehicleId}/options`),
+      ]);
+
+      const sourceTrims = await trimsRes.json();
+      const sourceColors = await colorsRes.json();
+      const sourceOptions = await optionsRes.json();
+
+      if (importType === 'trims' || importType === 'all') {
+        // 트림 복사 (ID 제거하고 isNew로 표시)
+        const newTrims: TrimData[] = sourceTrims.map((t: TrimData, idx: number) => ({
+          name: t.name,
+          price: t.price,
+          description: t.description || '',
+          sortOrder: idx,
+          isNew: true,
+          colorIds: [],
+          optionSettings: [],
+        }));
+        setTrims(prev => [...prev, ...newTrims]);
+      }
+
+      if (importType === 'colors' || importType === 'all') {
+        // 색상 복사
+        const extColors = sourceColors.filter((c: ColorData) => c.type === 'EXTERIOR');
+        const intColors = sourceColors.filter((c: ColorData) => c.type === 'INTERIOR');
+
+        const newExtColors: ColorData[] = extColors.map((c: ColorData, idx: number) => ({
+          type: 'EXTERIOR' as const,
+          name: c.name,
+          hexCode: c.hexCode,
+          price: c.price,
+          sortOrder: exteriorColors.length + idx,
+          isNew: true,
+        }));
+        const newIntColors: ColorData[] = intColors.map((c: ColorData, idx: number) => ({
+          type: 'INTERIOR' as const,
+          name: c.name,
+          hexCode: c.hexCode,
+          price: c.price,
+          sortOrder: interiorColors.length + idx,
+          isNew: true,
+        }));
+
+        setExteriorColors(prev => [...prev, ...newExtColors]);
+        setInteriorColors(prev => [...prev, ...newIntColors]);
+      }
+
+      if (importType === 'options' || importType === 'all') {
+        // 옵션 복사
+        const newOptions: OptionData[] = sourceOptions.map((o: OptionData, idx: number) => ({
+          name: o.name,
+          price: o.price,
+          description: o.description || '',
+          category: o.category || '기타',
+          sortOrder: options.length + idx,
+          isNew: true,
+        }));
+        setOptions(prev => [...prev, ...newOptions]);
+      }
+
+      alert('불러오기가 완료되었습니다. 가격을 수정한 후 저장해주세요.');
+      setShowImportModal(false);
+    } catch (error) {
+      console.error('Failed to import:', error);
+      alert('불러오기에 실패했습니다.');
+    } finally {
+      setLoadingImport(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -364,6 +546,9 @@ export default function EditVehiclePage() {
           rentPrice48_50: formData.rentPrice48_50 ? parseInt(formData.rentPrice48_50) : null,
           rentPrice36_50: formData.rentPrice36_50 ? parseInt(formData.rentPrice36_50) : null,
           rentPrice24_50: formData.rentPrice24_50 ? parseInt(formData.rentPrice24_50) : null,
+          // 모델 정보
+          baseModelName: formData.baseModelName || null,
+          hasOtherModels: formData.hasOtherModels,
         }),
       });
 
@@ -503,26 +688,38 @@ export default function EditVehiclePage() {
 
       {/* Tabs */}
       <div className="border-b border-gray-200 mb-6">
-        <nav className="flex gap-8">
-          {[
-            { key: 'basic', label: '기본 정보' },
-            { key: 'trims', label: `트림 (${trims.length})` },
-            { key: 'colors', label: `색상 (${exteriorColors.length + interiorColors.length})` },
-            { key: 'options', label: `옵션 (${options.length})` },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key as 'basic' | 'trims' | 'colors' | 'options')}
-              className={`pb-4 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === tab.key
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
+        <div className="flex items-center justify-between">
+          <nav className="flex gap-8">
+            {[
+              { key: 'basic', label: '기본 정보' },
+              { key: 'trims', label: `트림 (${trims.length})` },
+              { key: 'colors', label: `색상 (${exteriorColors.length + interiorColors.length})` },
+              { key: 'options', label: `옵션 (${options.length})` },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key as 'basic' | 'trims' | 'colors' | 'options')}
+                className={`pb-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab.key
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => openImportModal('all')}
+            className="mb-2"
+          >
+            <Copy className="w-4 h-4 mr-1" />
+            다른 차량에서 불러오기
+          </Button>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -628,6 +825,28 @@ export default function EditVehiclePage() {
                     <span className="text-gray-500 text-sm">인승</span>
                   </div>
                   <p className="text-xs text-gray-500">동일하면 최소만 입력</p>
+                </div>
+
+                {/* 모델 정보 */}
+                <div className="space-y-4 pt-4 border-t">
+                  <label className="block text-sm font-medium text-gray-700">기준 모델 정보</label>
+                  <Input
+                    id="baseModelName"
+                    label="기준 모델명"
+                    value={formData.baseModelName}
+                    onChange={(e) => setFormData({ ...formData, baseModelName: e.target.value })}
+                    placeholder="예: 가솔린 1.6"
+                  />
+                  <p className="text-xs text-gray-500">입력 시 디테일 페이지에 &quot;가솔린 1.6 기준&quot; 으로 표시됩니다.</p>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.hasOtherModels}
+                      onChange={(e) => setFormData({ ...formData, hasOtherModels: e.target.checked })}
+                      className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <span className="text-gray-700">다른 모델 있음 (체크 시 &quot;다른 모델은 상담 문의&quot; 표시)</span>
+                  </label>
                 </div>
               </CardContent>
             </Card>
@@ -858,12 +1077,36 @@ export default function EditVehiclePage() {
                         }`}
                         onClick={() => setSelectedTrimIndex(index)}
                       >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-semibold">{trim.name || '새 트림'}</p>
-                            <p className="text-sm text-gray-500">
-                              +{trim.price.toLocaleString()}원
-                            </p>
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <div className="flex flex-col">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                disabled={index === 0}
+                                className="h-5 w-5 p-0"
+                                onClick={(e) => { e.stopPropagation(); moveTrim(index, 'up'); }}
+                              >
+                                <ArrowUp className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                disabled={index === trims.length - 1}
+                                className="h-5 w-5 p-0"
+                                onClick={(e) => { e.stopPropagation(); moveTrim(index, 'down'); }}
+                              >
+                                <ArrowDown className="w-3 h-3" />
+                              </Button>
+                            </div>
+                            <div>
+                              <p className="font-semibold">{trim.name || '새 트림'}</p>
+                              <p className="text-sm text-gray-500">
+                                +{trim.price.toLocaleString()}원
+                              </p>
+                            </div>
                           </div>
                           <Button
                             type="button"
@@ -1073,7 +1316,29 @@ export default function EditVehiclePage() {
                 ) : (
                   <div className="space-y-4">
                     {exteriorColors.map((color, index) => (
-                      <div key={color.id || `new-ext-${index}`} className="flex gap-4 items-start p-4 bg-gray-50 rounded-lg">
+                      <div key={color.id || `new-ext-${index}`} className="flex gap-2 items-start p-4 bg-gray-50 rounded-lg">
+                        <div className="flex flex-col mt-6">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={index === 0}
+                            className="h-6 w-6 p-0"
+                            onClick={() => moveColor('EXTERIOR', index, 'up')}
+                          >
+                            <ArrowUp className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={index === exteriorColors.length - 1}
+                            className="h-6 w-6 p-0"
+                            onClick={() => moveColor('EXTERIOR', index, 'down')}
+                          >
+                            <ArrowDown className="w-3 h-3" />
+                          </Button>
+                        </div>
                         <div
                           className="w-10 h-10 rounded-lg border-2 border-gray-200 mt-6 flex-shrink-0"
                           style={{ backgroundColor: color.hexCode }}
@@ -1129,7 +1394,29 @@ export default function EditVehiclePage() {
                 ) : (
                   <div className="space-y-4">
                     {interiorColors.map((color, index) => (
-                      <div key={color.id || `new-int-${index}`} className="flex gap-4 items-start p-4 bg-gray-50 rounded-lg">
+                      <div key={color.id || `new-int-${index}`} className="flex gap-2 items-start p-4 bg-gray-50 rounded-lg">
+                        <div className="flex flex-col mt-6">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={index === 0}
+                            className="h-6 w-6 p-0"
+                            onClick={() => moveColor('INTERIOR', index, 'up')}
+                          >
+                            <ArrowUp className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={index === interiorColors.length - 1}
+                            className="h-6 w-6 p-0"
+                            onClick={() => moveColor('INTERIOR', index, 'down')}
+                          >
+                            <ArrowDown className="w-3 h-3" />
+                          </Button>
+                        </div>
                         <div
                           className="w-10 h-10 rounded-lg border-2 border-gray-200 mt-6 flex-shrink-0"
                           style={{ backgroundColor: color.hexCode }}
@@ -1188,7 +1475,29 @@ export default function EditVehiclePage() {
               ) : (
                 <div className="space-y-4">
                   {options.map((option, index) => (
-                    <div key={option.id || `new-${index}`} className="flex gap-4 items-start p-4 bg-gray-50 rounded-lg">
+                    <div key={option.id || `new-${index}`} className="flex gap-2 items-start p-4 bg-gray-50 rounded-lg">
+                      <div className="flex flex-col mt-6">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          disabled={index === 0}
+                          className="h-6 w-6 p-0"
+                          onClick={() => moveOption(index, 'up')}
+                        >
+                          <ArrowUp className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          disabled={index === options.length - 1}
+                          className="h-6 w-6 p-0"
+                          onClick={() => moveOption(index, 'down')}
+                        >
+                          <ArrowDown className="w-3 h-3" />
+                        </Button>
+                      </div>
                       <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4">
                         <Input
                           label="옵션명"
@@ -1242,6 +1551,83 @@ export default function EditVehiclePage() {
           </Button>
         </div>
       </form>
+
+      {/* 옵션 불러오기 모달 */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowImportModal(false)} />
+          <div className="relative bg-white rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <div>
+                <h3 className="font-bold text-lg">다른 차량에서 불러오기</h3>
+                <p className="text-sm text-gray-500">같은 브랜드의 차량에서 트림/색상/옵션을 복사합니다</p>
+              </div>
+              <button onClick={() => setShowImportModal(false)}>
+                <X className="w-6 h-6 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="p-4 border-b">
+              <label className="block text-sm font-medium text-gray-700 mb-2">불러올 항목</label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { value: 'all', label: '전체' },
+                  { value: 'trims', label: '트림만' },
+                  { value: 'colors', label: '색상만' },
+                  { value: 'options', label: '옵션만' },
+                ].map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => setImportType(item.value as typeof importType)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      importType === item.value
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              {loadingImport ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                </div>
+              ) : sameBrandVehicles.length > 0 ? (
+                <div className="space-y-2">
+                  {sameBrandVehicles.map((vehicle) => (
+                    <button
+                      key={vehicle.id}
+                      type="button"
+                      onClick={() => importFromVehicle(vehicle.id)}
+                      className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all text-left"
+                    >
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Car className="w-6 h-6 text-gray-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{vehicle.name}</p>
+                        <p className="text-sm text-gray-500">클릭하여 불러오기</p>
+                      </div>
+                      <Copy className="w-5 h-5 text-gray-400" />
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Car className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p>같은 브랜드의 다른 차량이 없습니다.</p>
+                  <p className="text-sm mt-1">다른 브랜드 차량을 먼저 등록해주세요.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

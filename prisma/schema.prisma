@@ -61,6 +61,10 @@ model Vehicle {
   imageSizePreset String?  // 이미지 크기 프리셋 (vehicle, vehicleHD, banner, original)
   imagePadding    Int?     // 이미지 여백 퍼센트 (0, 5, 10, 15, 20)
 
+  // 모델 정보
+  baseModelName String?  // 기본 모델명 (예: "가솔린 1.6")
+  hasOtherModels Boolean @default(true)  // 다른 모델 있음 여부
+
   // 상태
   isPopular Boolean @default(false)
   isNew     Boolean @default(false)

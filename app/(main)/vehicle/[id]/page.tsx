@@ -390,9 +390,22 @@ export default function VehicleDetailPage() {
               </div>
 
               {/* Title */}
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-black mb-6">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-black mb-2">
                 {vehicle.brand?.nameKr} {vehicle.name}
               </h1>
+              {/* 모델 정보 */}
+              {vehicle.baseModelName && (
+                <div className="mb-4">
+                  <span className="inline-flex items-center bg-white/10 text-white/90 text-sm font-medium px-3 py-1.5 rounded-full">
+                    {vehicle.baseModelName} 기준
+                  </span>
+                  {vehicle.hasOtherModels && (
+                    <span className="ml-2 text-sm text-gray-400">
+                      · 다른 모델(디젤, 하이브리드 등)은 상담 문의
+                    </span>
+                  )}
+                </div>
+              )}
               {/* Quick Specs */}
               <div className="flex flex-wrap gap-3 mb-6">
                 {vehicle.fuelTypes && vehicle.fuelTypes.length > 0 && (

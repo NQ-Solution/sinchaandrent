@@ -46,6 +46,9 @@ export interface Vehicle {
   images: string[];
   imageSizePreset?: string | null;
   imagePadding?: number | null;
+  // 모델 정보
+  baseModelName?: string | null;
+  hasOtherModels: boolean;
   isPopular: boolean;
   isNew: boolean;
   isActive: boolean;
