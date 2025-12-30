@@ -84,6 +84,9 @@ export async function POST(request: NextRequest) {
           rentPrice48_50: data.rentPrice48_50 ?? null,
           rentPrice36_50: data.rentPrice36_50 ?? null,
           rentPrice24_50: data.rentPrice24_50 ?? null,
+          // 모델 정보
+          baseModelName: data.baseModelName ?? null,
+          hasOtherModels: data.hasOtherModels ?? true,
           isPopular: data.isPopular ?? false,
           isNew: data.isNew ?? false,
           isActive: data.isActive ?? true,
@@ -122,6 +125,9 @@ export async function POST(request: NextRequest) {
         rentPrice48_50: data.rentPrice48_50 ?? null,
         rentPrice36_50: data.rentPrice36_50 ?? null,
         rentPrice24_50: data.rentPrice24_50 ?? null,
+        // 모델 정보
+        baseModelName: data.baseModelName ?? null,
+        hasOtherModels: data.hasOtherModels ?? true,
         isPopular: data.isPopular ?? false,
         isNew: data.isNew ?? false,
         isActive: data.isActive ?? true,

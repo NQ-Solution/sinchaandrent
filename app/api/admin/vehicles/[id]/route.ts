@@ -113,6 +113,9 @@ export async function PUT(
           rentPrice48_50: data.rentPrice48_50,
           rentPrice36_50: data.rentPrice36_50,
           rentPrice24_50: data.rentPrice24_50,
+          // 모델 정보
+          baseModelName: data.baseModelName,
+          hasOtherModels: data.hasOtherModels,
           isPopular: data.isPopular,
           isNew: data.isNew,
           isActive: data.isActive,
@@ -151,6 +154,9 @@ export async function PUT(
         rentPrice48_50: data.rentPrice48_50,
         rentPrice36_50: data.rentPrice36_50,
         rentPrice24_50: data.rentPrice24_50,
+        // 모델 정보
+        baseModelName: data.baseModelName,
+        hasOtherModels: data.hasOtherModels,
         isPopular: data.isPopular,
         isNew: data.isNew,
         isActive: data.isActive,

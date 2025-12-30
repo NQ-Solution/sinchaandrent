@@ -98,6 +98,9 @@ export default function NewVehiclePage() {
     isPopular: false,
     isNew: false,
     isActive: true,
+    // 모델 정보
+    baseModelName: '',
+    hasOtherModels: true,
   });
 
   // Vehicle options
@@ -209,6 +212,9 @@ export default function NewVehiclePage() {
           rentPrice48_50: formData.rentPrice48_50 ? parseInt(formData.rentPrice48_50) : null,
           rentPrice36_50: formData.rentPrice36_50 ? parseInt(formData.rentPrice36_50) : null,
           rentPrice24_50: formData.rentPrice24_50 ? parseInt(formData.rentPrice24_50) : null,
+          // 모델 정보
+          baseModelName: formData.baseModelName || null,
+          hasOtherModels: formData.hasOtherModels,
         }),
       });
 
@@ -410,6 +416,28 @@ export default function NewVehiclePage() {
                     <span className="text-gray-500 text-sm">인승</span>
                   </div>
                   <p className="text-xs text-gray-500">동일하면 최소만 입력</p>
+                </div>
+
+                {/* 모델 정보 */}
+                <div className="space-y-4 pt-4 border-t">
+                  <label className="block text-sm font-medium text-gray-700">기준 모델 정보</label>
+                  <Input
+                    id="baseModelName"
+                    label="기준 모델명"
+                    value={formData.baseModelName}
+                    onChange={(e) => setFormData({ ...formData, baseModelName: e.target.value })}
+                    placeholder="예: 가솔린 1.6"
+                  />
+                  <p className="text-xs text-gray-500">입력 시 디테일 페이지에 &quot;가솔린 1.6 기준&quot; 으로 표시됩니다.</p>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.hasOtherModels}
+                      onChange={(e) => setFormData({ ...formData, hasOtherModels: e.target.checked })}
+                      className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <span className="text-gray-700">다른 모델 있음 (체크 시 &quot;다른 모델은 상담 문의&quot; 표시)</span>
+                  </label>
                 </div>
               </CardContent>
             </Card>

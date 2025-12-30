@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // 차량 카테고리
-export const VehicleCategorySchema = z.enum(['SEDAN', 'SUV', 'TRUCK', 'VAN', 'EV']);
+export const VehicleCategorySchema = z.enum(['SEDAN', 'SUV', 'TRUCK', 'VAN', 'EV', 'COMPACT', 'HATCHBACK', 'COUPE', 'CONVERTIBLE']);
 
 // 연료 타입
 export const FuelTypeSchema = z.enum(['GASOLINE', 'DIESEL', 'HYBRID', 'EV', 'LPG']);
@@ -49,6 +49,9 @@ export const VehicleSchema = z.object({
   images: z.array(z.string()).default([]),
   imageSizePreset: z.string().nullable().optional(),
   imagePadding: z.number().int().min(0).max(50).nullable().optional(),
+  // 모델 정보
+  baseModelName: z.string().max(100).nullable().optional(),
+  hasOtherModels: z.boolean().default(true),
   isPopular: z.boolean().default(false),
   isNew: z.boolean().default(false),
   isActive: z.boolean().default(true),
