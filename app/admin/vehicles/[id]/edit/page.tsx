@@ -31,6 +31,7 @@ interface ColorData {
   price: number;
   sortOrder: number;
   isNew?: boolean;
+  masterColorId?: string;
 }
 
 interface OptionData {
@@ -41,6 +42,7 @@ interface OptionData {
   category: string;
   sortOrder: number;
   isNew?: boolean;
+  masterOptionId?: string;
 }
 
 const categories: { value: VehicleCategory; label: string }[] = [
@@ -140,6 +142,10 @@ export default function EditVehiclePage() {
   const [masterColors, setMasterColors] = useState<{ id: string; type: string; name: string; hexCode: string; vehicleCount: number }[]>([]);
   const [masterOptions, setMasterOptions] = useState<{ id: string; name: string; category: string; vehicleCount: number }[]>([]);
   const [loadingMaster, setLoadingMaster] = useState(false);
+  const [selectedMasterColors, setSelectedMasterColors] = useState<string[]>([]);
+  const [selectedMasterOptions, setSelectedMasterOptions] = useState<string[]>([]);
+  const [masterTab, setMasterTab] = useState<'colors' | 'options'>('colors');
+  const [masterSearch, setMasterSearch] = useState('');
 
   useEffect(() => {
     async function fetchData() {
@@ -558,6 +564,9 @@ export default function EditVehiclePage() {
 
     setLoadingMaster(true);
     setShowMasterModal(true);
+    setSelectedMasterColors([]);
+    setSelectedMasterOptions([]);
+    setMasterSearch('');
 
     try {
       const [colorsRes, optionsRes] = await Promise.all([
@@ -573,6 +582,119 @@ export default function EditVehiclePage() {
       }
     } catch (error) {
       console.error('Failed to fetch master data:', error);
+    } finally {
+      setLoadingMaster(false);
+    }
+  };
+
+  // 마스터 색상 선택 토글
+  const toggleMasterColor = (colorId: string) => {
+    setSelectedMasterColors(prev =>
+      prev.includes(colorId)
+        ? prev.filter(id => id !== colorId)
+        : [...prev, colorId]
+    );
+  };
+
+  // 마스터 옵션 선택 토글
+  const toggleMasterOption = (optionId: string) => {
+    setSelectedMasterOptions(prev =>
+      prev.includes(optionId)
+        ? prev.filter(id => id !== optionId)
+        : [...prev, optionId]
+    );
+  };
+
+  // 선택한 마스터 항목 추가
+  const addSelectedMasterItems = async () => {
+    if (selectedMasterColors.length === 0 && selectedMasterOptions.length === 0) {
+      alert('추가할 항목을 선택해주세요.');
+      return;
+    }
+
+    setLoadingMaster(true);
+
+    try {
+      let addedColors = 0;
+      let addedOptions = 0;
+      let skippedColors = 0;
+      let skippedOptions = 0;
+
+      // 현재 차량에 있는 색상/옵션 확인 (중복 체크용)
+      const existingExtColorNames = new Set(exteriorColors.map(c => c.name.toLowerCase()));
+      const existingIntColorNames = new Set(interiorColors.map(c => c.name.toLowerCase()));
+      const existingOptionNames = new Set(options.map(o => o.name.toLowerCase()));
+
+      // 선택한 마스터 색상 추가
+      for (const colorId of selectedMasterColors) {
+        const masterColor = masterColors.find(c => c.id === colorId);
+        if (!masterColor) continue;
+
+        const isExterior = masterColor.type === 'EXTERIOR';
+        const existingSet = isExterior ? existingExtColorNames : existingIntColorNames;
+
+        if (existingSet.has(masterColor.name.toLowerCase())) {
+          skippedColors++;
+          continue;
+        }
+
+        const newColor: ColorData = {
+          type: masterColor.type as 'EXTERIOR' | 'INTERIOR',
+          name: masterColor.name,
+          hexCode: masterColor.hexCode,
+          price: 0,
+          sortOrder: isExterior ? exteriorColors.length : interiorColors.length,
+          isNew: true,
+          masterColorId: masterColor.id,
+        };
+
+        if (isExterior) {
+          setExteriorColors(prev => [...prev, newColor]);
+          existingExtColorNames.add(masterColor.name.toLowerCase());
+        } else {
+          setInteriorColors(prev => [...prev, newColor]);
+          existingIntColorNames.add(masterColor.name.toLowerCase());
+        }
+        addedColors++;
+      }
+
+      // 선택한 마스터 옵션 추가
+      for (const optionId of selectedMasterOptions) {
+        const masterOption = masterOptions.find(o => o.id === optionId);
+        if (!masterOption) continue;
+
+        if (existingOptionNames.has(masterOption.name.toLowerCase())) {
+          skippedOptions++;
+          continue;
+        }
+
+        const newOption: OptionData = {
+          name: masterOption.name,
+          price: 0,
+          description: '',
+          category: masterOption.category || '기타',
+          sortOrder: options.length,
+          isNew: true,
+          masterOptionId: masterOption.id,
+        };
+
+        setOptions(prev => [...prev, newOption]);
+        existingOptionNames.add(masterOption.name.toLowerCase());
+        addedOptions++;
+      }
+
+      // 결과 메시지
+      const messages: string[] = [];
+      if (addedColors > 0) messages.push(`색상 ${addedColors}개 추가`);
+      if (addedOptions > 0) messages.push(`옵션 ${addedOptions}개 추가`);
+      if (skippedColors > 0) messages.push(`색상 ${skippedColors}개 중복 건너뜀`);
+      if (skippedOptions > 0) messages.push(`옵션 ${skippedOptions}개 중복 건너뜀`);
+
+      alert(messages.join(', ') + '\n\n가격을 설정한 후 저장해주세요.');
+      setShowMasterModal(false);
+    } catch (error) {
+      console.error('Failed to add master items:', error);
+      alert('추가에 실패했습니다.');
     } finally {
       setLoadingMaster(false);
     }
@@ -1737,19 +1859,66 @@ export default function EditVehiclePage() {
         </div>
       )}
 
-      {/* 브랜드 마스터 목록 모달 */}
+      {/* 브랜드 마스터 목록 모달 - 개별 선택 가능 */}
       {showMasterModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowMasterModal(false)} />
-          <div className="relative bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+          <div className="relative bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b">
               <div>
-                <h3 className="font-bold text-lg">브랜드 마스터 색상/옵션</h3>
-                <p className="text-sm text-gray-500">이 브랜드에 등록된 모든 색상과 옵션입니다</p>
+                <h3 className="font-bold text-lg">브랜드 색상/옵션에서 선택하여 추가</h3>
+                <p className="text-sm text-gray-500">필요한 항목을 선택하고 추가 버튼을 눌러주세요</p>
               </div>
               <button onClick={() => setShowMasterModal(false)}>
                 <X className="w-6 h-6 text-gray-500" />
               </button>
+            </div>
+
+            {/* 탭 */}
+            <div className="flex border-b px-4">
+              <button
+                type="button"
+                onClick={() => setMasterTab('colors')}
+                className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
+                  masterTab === 'colors'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-500'
+                }`}
+              >
+                색상 ({masterColors.length}개)
+                {selectedMasterColors.length > 0 && (
+                  <span className="ml-2 px-2 py-0.5 bg-primary text-white text-xs rounded-full">
+                    {selectedMasterColors.length}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMasterTab('options')}
+                className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
+                  masterTab === 'options'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-500'
+                }`}
+              >
+                옵션 ({masterOptions.length}개)
+                {selectedMasterOptions.length > 0 && (
+                  <span className="ml-2 px-2 py-0.5 bg-primary text-white text-xs rounded-full">
+                    {selectedMasterOptions.length}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* 검색 */}
+            <div className="p-4 border-b">
+              <input
+                type="text"
+                placeholder={masterTab === 'colors' ? '색상 검색...' : '옵션 검색...'}
+                value={masterSearch}
+                onChange={(e) => setMasterSearch(e.target.value)}
+                className="w-full px-4 py-2 border rounded-lg"
+              />
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
@@ -1757,60 +1926,185 @@ export default function EditVehiclePage() {
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* 마스터 색상 */}
+              ) : masterTab === 'colors' ? (
+                /* 색상 탭 */
+                <div className="space-y-4">
+                  {/* 외장색 */}
                   <div>
-                    <h4 className="font-semibold mb-3">색상 ({masterColors.length}개)</h4>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">외장색</h4>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {masterColors.map((color) => (
-                        <div
-                          key={color.id}
-                          className="flex items-center gap-2 p-2 rounded-lg bg-gray-50"
-                        >
-                          <div
-                            className="w-8 h-8 rounded border"
-                            style={{ backgroundColor: color.hexCode }}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{color.name}</p>
-                            <p className="text-xs text-gray-500">
-                              {color.type === 'EXTERIOR' ? '외장' : '내장'} | {color.vehicleCount}개 차량
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+                      {masterColors
+                        .filter(c => c.type === 'EXTERIOR')
+                        .filter(c => c.name.toLowerCase().includes(masterSearch.toLowerCase()))
+                        .map((color) => {
+                          const isSelected = selectedMasterColors.includes(color.id);
+                          const isExisting = exteriorColors.some(
+                            ec => ec.name.toLowerCase() === color.name.toLowerCase()
+                          );
+                          return (
+                            <button
+                              key={color.id}
+                              type="button"
+                              onClick={() => !isExisting && toggleMasterColor(color.id)}
+                              disabled={isExisting}
+                              className={`flex items-center gap-2 p-2 rounded-lg border-2 text-left transition-all ${
+                                isExisting
+                                  ? 'bg-gray-100 border-gray-200 opacity-50 cursor-not-allowed'
+                                  : isSelected
+                                  ? 'border-primary bg-primary/10'
+                                  : 'border-gray-200 hover:border-primary/50'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                disabled={isExisting}
+                                onChange={() => {}}
+                                className="w-4 h-4 rounded"
+                              />
+                              <div
+                                className="w-6 h-6 rounded border flex-shrink-0"
+                                style={{ backgroundColor: color.hexCode }}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{color.name}</p>
+                                {isExisting && (
+                                  <p className="text-xs text-green-600">이미 추가됨</p>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
                     </div>
-                    {masterColors.length === 0 && (
-                      <p className="text-gray-500 text-sm">등록된 색상이 없습니다.</p>
-                    )}
                   </div>
 
-                  {/* 마스터 옵션 */}
+                  {/* 내장색 */}
                   <div>
-                    <h4 className="font-semibold mb-3">옵션 ({masterOptions.length}개)</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {masterOptions.map((option) => (
-                        <div
-                          key={option.id}
-                          className="flex items-center justify-between p-2 rounded-lg bg-gray-50"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{option.name}</p>
-                            <p className="text-xs text-gray-500">
-                              {option.category || '기타'} | {option.vehicleCount}개 차량
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">내장색</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {masterColors
+                        .filter(c => c.type === 'INTERIOR')
+                        .filter(c => c.name.toLowerCase().includes(masterSearch.toLowerCase()))
+                        .map((color) => {
+                          const isSelected = selectedMasterColors.includes(color.id);
+                          const isExisting = interiorColors.some(
+                            ic => ic.name.toLowerCase() === color.name.toLowerCase()
+                          );
+                          return (
+                            <button
+                              key={color.id}
+                              type="button"
+                              onClick={() => !isExisting && toggleMasterColor(color.id)}
+                              disabled={isExisting}
+                              className={`flex items-center gap-2 p-2 rounded-lg border-2 text-left transition-all ${
+                                isExisting
+                                  ? 'bg-gray-100 border-gray-200 opacity-50 cursor-not-allowed'
+                                  : isSelected
+                                  ? 'border-primary bg-primary/10'
+                                  : 'border-gray-200 hover:border-primary/50'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                disabled={isExisting}
+                                onChange={() => {}}
+                                className="w-4 h-4 rounded"
+                              />
+                              <div
+                                className="w-6 h-6 rounded border flex-shrink-0"
+                                style={{ backgroundColor: color.hexCode }}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{color.name}</p>
+                                {isExisting && (
+                                  <p className="text-xs text-green-600">이미 추가됨</p>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
                     </div>
-                    {masterOptions.length === 0 && (
-                      <p className="text-gray-500 text-sm">등록된 옵션이 없습니다.</p>
-                    )}
                   </div>
+
+                  {masterColors.length === 0 && (
+                    <p className="text-gray-500 text-sm text-center py-8">등록된 색상이 없습니다.</p>
+                  )}
+                </div>
+              ) : (
+                /* 옵션 탭 */
+                <div className="space-y-2">
+                  {masterOptions
+                    .filter(o => o.name.toLowerCase().includes(masterSearch.toLowerCase()))
+                    .map((option) => {
+                      const isSelected = selectedMasterOptions.includes(option.id);
+                      const isExisting = options.some(
+                        eo => eo.name.toLowerCase() === option.name.toLowerCase()
+                      );
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => !isExisting && toggleMasterOption(option.id)}
+                          disabled={isExisting}
+                          className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 text-left transition-all ${
+                            isExisting
+                              ? 'bg-gray-100 border-gray-200 opacity-50 cursor-not-allowed'
+                              : isSelected
+                              ? 'border-primary bg-primary/10'
+                              : 'border-gray-200 hover:border-primary/50'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            disabled={isExisting}
+                            onChange={() => {}}
+                            className="w-4 h-4 rounded"
+                          />
+                          <span className="px-2 py-1 bg-gray-100 rounded text-xs font-medium flex-shrink-0">
+                            {option.category || '기타'}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{option.name}</p>
+                          </div>
+                          {isExisting && (
+                            <span className="text-xs text-green-600 flex-shrink-0">이미 추가됨</span>
+                          )}
+                        </button>
+                      );
+                    })}
+
+                  {masterOptions.length === 0 && (
+                    <p className="text-gray-500 text-sm text-center py-8">등록된 옵션이 없습니다.</p>
+                  )}
                 </div>
               )}
             </div>
+
+            {/* 하단 추가 버튼 */}
+            {(selectedMasterColors.length > 0 || selectedMasterOptions.length > 0) && (
+              <div className="p-4 border-t bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    {selectedMasterColors.length > 0 && (
+                      <span className="mr-3">색상 {selectedMasterColors.length}개</span>
+                    )}
+                    {selectedMasterOptions.length > 0 && (
+                      <span>옵션 {selectedMasterOptions.length}개</span>
+                    )}
+                    <span className="ml-1">선택됨</span>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={addSelectedMasterItems}
+                    disabled={loadingMaster}
+                  >
+                    {loadingMaster ? '추가 중...' : '선택한 항목 추가'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
