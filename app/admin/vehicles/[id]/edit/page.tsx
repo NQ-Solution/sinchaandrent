@@ -132,7 +132,14 @@ export default function EditVehiclePage() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [importType, setImportType] = useState<'trims' | 'colors' | 'options' | 'all'>('all');
   const [sameBrandVehicles, setSameBrandVehicles] = useState<Vehicle[]>([]);
+  const [selectedVehicleIds, setSelectedVehicleIds] = useState<string[]>([]); // 다중 선택
   const [loadingImport, setLoadingImport] = useState(false);
+
+  // 브랜드 마스터 색상/옵션 모달
+  const [showMasterModal, setShowMasterModal] = useState(false);
+  const [masterColors, setMasterColors] = useState<{ id: string; type: string; name: string; hexCode: string; vehicleCount: number }[]>([]);
+  const [masterOptions, setMasterOptions] = useState<{ id: string; name: string; category: string; vehicleCount: number }[]>([]);
+  const [loadingMaster, setLoadingMaster] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -427,6 +434,7 @@ export default function EditVehiclePage() {
     setImportType(type);
     setLoadingImport(true);
     setShowImportModal(true);
+    setSelectedVehicleIds([]); // 선택 초기화
 
     try {
       const res = await fetch(`/api/vehicles?all=true`);
@@ -441,81 +449,132 @@ export default function EditVehiclePage() {
     }
   };
 
-  // 선택한 차량에서 옵션 복사
-  const importFromVehicle = async (sourceVehicleId: string) => {
+  // 차량 선택 토글
+  const toggleVehicleSelection = (vehicleId: string) => {
+    setSelectedVehicleIds(prev =>
+      prev.includes(vehicleId)
+        ? prev.filter(id => id !== vehicleId)
+        : [...prev, vehicleId]
+    );
+  };
+
+  // 선택한 차량들에서 옵션 복사 (서버 API 사용 - 중복 자동 필터링)
+  const importFromSelectedVehicles = async () => {
+    if (selectedVehicleIds.length === 0) {
+      alert('차량을 선택해주세요.');
+      return;
+    }
+
     setLoadingImport(true);
 
     try {
-      const [trimsRes, colorsRes, optionsRes] = await Promise.all([
-        fetch(`/api/admin/vehicles/${sourceVehicleId}/trims`),
-        fetch(`/api/admin/vehicles/${sourceVehicleId}/colors`),
-        fetch(`/api/admin/vehicles/${sourceVehicleId}/options`),
-      ]);
+      // 새 Import API 호출 (중복 자동 필터링)
+      const res = await fetch(`/api/admin/vehicles/${id}/import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sourceVehicleIds: selectedVehicleIds,
+          importColors: importType === 'colors' || importType === 'all',
+          importOptions: importType === 'options' || importType === 'all',
+        }),
+      });
 
-      const sourceTrims = await trimsRes.json();
-      const sourceColors = await colorsRes.json();
-      const sourceOptions = await optionsRes.json();
+      const result = await res.json();
 
+      if (!res.ok) {
+        throw new Error(result.error || 'Import failed');
+      }
+
+      // 트림은 별도 처리 (서버 API에 없음)
       if (importType === 'trims' || importType === 'all') {
-        // 트림 복사 (ID 제거하고 isNew로 표시)
-        const newTrims: TrimData[] = sourceTrims.map((t: TrimData, idx: number) => ({
-          name: t.name,
-          price: t.price,
-          description: t.description || '',
-          sortOrder: idx,
-          isNew: true,
-          colorIds: [],
-          optionSettings: [],
-        }));
-        setTrims(prev => [...prev, ...newTrims]);
+        for (const sourceVehicleId of selectedVehicleIds) {
+          const trimsRes = await fetch(`/api/admin/vehicles/${sourceVehicleId}/trims`);
+          const sourceTrims = await trimsRes.json();
+
+          // 중복 체크: 이름이 같은 트림 제외
+          const existingNames = new Set(trims.map(t => t.name.toLowerCase()));
+          const newTrims: TrimData[] = sourceTrims
+            .filter((t: TrimData) => !existingNames.has(t.name.toLowerCase()))
+            .map((t: TrimData, idx: number) => {
+              existingNames.add(t.name.toLowerCase()); // 방금 추가한 것도 중복 체크에 포함
+              return {
+                name: t.name,
+                price: t.price,
+                description: t.description || '',
+                sortOrder: trims.length + idx,
+                isNew: true,
+                colorIds: [],
+                optionSettings: [],
+              };
+            });
+
+          if (newTrims.length > 0) {
+            setTrims(prev => [...prev, ...newTrims]);
+          }
+        }
       }
 
-      if (importType === 'colors' || importType === 'all') {
-        // 색상 복사
-        const extColors = sourceColors.filter((c: ColorData) => c.type === 'EXTERIOR');
-        const intColors = sourceColors.filter((c: ColorData) => c.type === 'INTERIOR');
+      // 데이터 새로고침 (색상/옵션)
+      if (importType === 'colors' || importType === 'all' || importType === 'options') {
+        const [colorsRes, optionsRes] = await Promise.all([
+          fetch(`/api/admin/vehicles/${id}/colors`),
+          fetch(`/api/admin/vehicles/${id}/options`),
+        ]);
 
-        const newExtColors: ColorData[] = extColors.map((c: ColorData, idx: number) => ({
-          type: 'EXTERIOR' as const,
-          name: c.name,
-          hexCode: c.hexCode,
-          price: c.price,
-          sortOrder: exteriorColors.length + idx,
-          isNew: true,
-        }));
-        const newIntColors: ColorData[] = intColors.map((c: ColorData, idx: number) => ({
-          type: 'INTERIOR' as const,
-          name: c.name,
-          hexCode: c.hexCode,
-          price: c.price,
-          sortOrder: interiorColors.length + idx,
-          isNew: true,
-        }));
+        const colorsData = await colorsRes.json();
+        const optionsData = await optionsRes.json();
 
-        setExteriorColors(prev => [...prev, ...newExtColors]);
-        setInteriorColors(prev => [...prev, ...newIntColors]);
+        setExteriorColors(colorsData.filter((c: ColorData) => c.type === 'EXTERIOR'));
+        setInteriorColors(colorsData.filter((c: ColorData) => c.type === 'INTERIOR'));
+        setOptions(optionsData.map((o: OptionData) => ({ ...o, description: o.description || '', category: o.category || '기타' })));
       }
 
-      if (importType === 'options' || importType === 'all') {
-        // 옵션 복사
-        const newOptions: OptionData[] = sourceOptions.map((o: OptionData, idx: number) => ({
-          name: o.name,
-          price: o.price,
-          description: o.description || '',
-          category: o.category || '기타',
-          sortOrder: options.length + idx,
-          isNew: true,
-        }));
-        setOptions(prev => [...prev, ...newOptions]);
+      // 결과 메시지
+      const msg = result.message || '불러오기가 완료되었습니다.';
+      const details: string[] = [];
+      if (result.result?.colors?.skippedItems?.length > 0) {
+        details.push(`중복 색상 건너뜀: ${result.result.colors.skippedItems.slice(0, 3).join(', ')}${result.result.colors.skippedItems.length > 3 ? ' 외 ' + (result.result.colors.skippedItems.length - 3) + '개' : ''}`);
+      }
+      if (result.result?.options?.skippedItems?.length > 0) {
+        details.push(`중복 옵션 건너뜀: ${result.result.options.skippedItems.slice(0, 3).join(', ')}${result.result.options.skippedItems.length > 3 ? ' 외 ' + (result.result.options.skippedItems.length - 3) + '개' : ''}`);
       }
 
-      alert('불러오기가 완료되었습니다. 가격을 수정한 후 저장해주세요.');
+      alert(msg + (details.length > 0 ? '\n\n' + details.join('\n') : ''));
       setShowImportModal(false);
     } catch (error) {
       console.error('Failed to import:', error);
       alert('불러오기에 실패했습니다.');
     } finally {
       setLoadingImport(false);
+    }
+  };
+
+  // 브랜드 마스터 목록 모달 열기
+  const openMasterModal = async () => {
+    if (!formData.brandId) {
+      alert('먼저 브랜드를 선택해주세요.');
+      return;
+    }
+
+    setLoadingMaster(true);
+    setShowMasterModal(true);
+
+    try {
+      const [colorsRes, optionsRes] = await Promise.all([
+        fetch(`/api/admin/brands/${formData.brandId}/colors`),
+        fetch(`/api/admin/brands/${formData.brandId}/options`),
+      ]);
+
+      if (colorsRes.ok) {
+        setMasterColors(await colorsRes.json());
+      }
+      if (optionsRes.ok) {
+        setMasterOptions(await optionsRes.json());
+      }
+    } catch (error) {
+      console.error('Failed to fetch master data:', error);
+    } finally {
+      setLoadingMaster(false);
     }
   };
 
@@ -713,16 +772,25 @@ export default function EditVehiclePage() {
               </button>
             ))}
           </nav>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => openImportModal('all')}
-            className="mb-2"
-          >
-            <Copy className="w-4 h-4 mr-1" />
-            다른 차량에서 불러오기
-          </Button>
+          <div className="flex gap-2 mb-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={openMasterModal}
+            >
+              브랜드 색상/옵션 목록
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => openImportModal('all')}
+            >
+              <Copy className="w-4 h-4 mr-1" />
+              다른 차량에서 불러오기
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -1564,7 +1632,7 @@ export default function EditVehiclePage() {
             <div className="flex items-center justify-between p-4 border-b">
               <div>
                 <h3 className="font-bold text-lg">다른 차량에서 불러오기</h3>
-                <p className="text-sm text-gray-500">같은 브랜드의 차량에서 트림/색상/옵션을 복사합니다</p>
+                <p className="text-sm text-gray-500">같은 브랜드의 차량에서 복사 (중복 자동 필터링)</p>
               </div>
               <button onClick={() => setShowImportModal(false)}>
                 <X className="w-6 h-6 text-gray-500" />
@@ -1603,29 +1671,143 @@ export default function EditVehiclePage() {
                 </div>
               ) : sameBrandVehicles.length > 0 ? (
                 <div className="space-y-2">
-                  {sameBrandVehicles.map((vehicle) => (
-                    <button
-                      key={vehicle.id}
-                      type="button"
-                      onClick={() => importFromVehicle(vehicle.id)}
-                      className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all text-left"
-                    >
-                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Car className="w-6 h-6 text-gray-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{vehicle.name}</p>
-                        <p className="text-sm text-gray-500">클릭하여 불러오기</p>
-                      </div>
-                      <Copy className="w-5 h-5 text-gray-400" />
-                    </button>
-                  ))}
+                  <p className="text-sm text-gray-500 mb-3">
+                    여러 차량 선택 가능 (예: G80, G70 동시 선택)
+                  </p>
+                  {sameBrandVehicles.map((vehicle) => {
+                    const isSelected = selectedVehicleIds.includes(vehicle.id);
+                    return (
+                      <button
+                        key={vehicle.id}
+                        type="button"
+                        onClick={() => toggleVehicleSelection(vehicle.id)}
+                        className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
+                          isSelected
+                            ? 'border-primary bg-primary/10'
+                            : 'border-gray-200 hover:border-primary/50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {}}
+                          className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Car className="w-6 h-6 text-gray-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{vehicle.name}</p>
+                          <p className="text-sm text-gray-500">클릭하여 선택</p>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   <Car className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                   <p>같은 브랜드의 다른 차량이 없습니다.</p>
                   <p className="text-sm mt-1">다른 브랜드 차량을 먼저 등록해주세요.</p>
+                </div>
+              )}
+            </div>
+
+            {/* 선택된 차량이 있을 때 불러오기 버튼 표시 */}
+            {selectedVehicleIds.length > 0 && (
+              <div className="p-4 border-t bg-gray-50">
+                <Button
+                  type="button"
+                  className="w-full"
+                  onClick={importFromSelectedVehicles}
+                  disabled={loadingImport}
+                >
+                  {loadingImport ? (
+                    '불러오는 중...'
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4 mr-2" />
+                      {selectedVehicleIds.length}개 차량에서 불러오기 (중복 자동 제외)
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 브랜드 마스터 목록 모달 */}
+      {showMasterModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowMasterModal(false)} />
+          <div className="relative bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <div>
+                <h3 className="font-bold text-lg">브랜드 마스터 색상/옵션</h3>
+                <p className="text-sm text-gray-500">이 브랜드에 등록된 모든 색상과 옵션입니다</p>
+              </div>
+              <button onClick={() => setShowMasterModal(false)}>
+                <X className="w-6 h-6 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              {loadingMaster ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* 마스터 색상 */}
+                  <div>
+                    <h4 className="font-semibold mb-3">색상 ({masterColors.length}개)</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {masterColors.map((color) => (
+                        <div
+                          key={color.id}
+                          className="flex items-center gap-2 p-2 rounded-lg bg-gray-50"
+                        >
+                          <div
+                            className="w-8 h-8 rounded border"
+                            style={{ backgroundColor: color.hexCode }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{color.name}</p>
+                            <p className="text-xs text-gray-500">
+                              {color.type === 'EXTERIOR' ? '외장' : '내장'} | {color.vehicleCount}개 차량
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {masterColors.length === 0 && (
+                      <p className="text-gray-500 text-sm">등록된 색상이 없습니다.</p>
+                    )}
+                  </div>
+
+                  {/* 마스터 옵션 */}
+                  <div>
+                    <h4 className="font-semibold mb-3">옵션 ({masterOptions.length}개)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {masterOptions.map((option) => (
+                        <div
+                          key={option.id}
+                          className="flex items-center justify-between p-2 rounded-lg bg-gray-50"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{option.name}</p>
+                            <p className="text-xs text-gray-500">
+                              {option.category || '기타'} | {option.vehicleCount}개 차량
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {masterOptions.length === 0 && (
+                      <p className="text-gray-500 text-sm">등록된 옵션이 없습니다.</p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
