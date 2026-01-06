@@ -60,6 +60,15 @@ export async function GET(
         trims: { orderBy: { sortOrder: 'asc' } },
         colors: { orderBy: { sortOrder: 'asc' } },
         options: { orderBy: { sortOrder: 'asc' } },
+        // 새 구조
+        vehicleColors: {
+          orderBy: { sortOrder: 'asc' },
+          include: { masterColor: true },
+        },
+        vehicleOptions: {
+          orderBy: { sortOrder: 'asc' },
+          include: { masterOption: true },
+        },
       },
     });
 
@@ -67,7 +76,38 @@ export async function GET(
       return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
     }
 
-    return NextResponse.json(vehicle);
+    // 새 구조의 색상/옵션을 기존 형식으로 변환
+    const colorsFromNew = vehicle.vehicleColors.map(vc => ({
+      id: vc.id,
+      vehicleId: vc.vehicleId,
+      masterColorId: vc.masterColorId,
+      type: vc.masterColor.type,
+      name: vc.masterColor.name,
+      hexCode: vc.masterColor.hexCode,
+      price: vc.price,
+      sortOrder: vc.sortOrder,
+    }));
+
+    const optionsFromNew = vehicle.vehicleOptions.map(vo => ({
+      id: vo.id,
+      vehicleId: vo.vehicleId,
+      masterOptionId: vo.masterOptionId,
+      name: vo.masterOption.name,
+      description: vo.masterOption.description,
+      category: vo.masterOption.category,
+      price: vo.price,
+      sortOrder: vo.sortOrder,
+    }));
+
+    const result = {
+      ...vehicle,
+      colors: colorsFromNew.length > 0 ? colorsFromNew : vehicle.colors,
+      options: optionsFromNew.length > 0 ? optionsFromNew : vehicle.options,
+      vehicleColors: undefined,
+      vehicleOptions: undefined,
+    };
+
+    return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: 'Failed to fetch vehicle' }, { status: 500 });
   }

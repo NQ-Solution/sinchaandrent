@@ -21,11 +21,30 @@ export async function GET(
     const trimColors = await prisma.trimColor.findMany({
       where: { trimId },
       include: {
-        color: true,
+        vehicleColor: {
+          include: {
+            masterColor: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json(trimColors);
+    // 기존 형식으로 변환하여 반환
+    const result = trimColors.map(tc => ({
+      id: tc.id,
+      trimId: tc.trimId,
+      vehicleColorId: tc.vehicleColorId,
+      color: {
+        id: tc.vehicleColor.id,
+        type: tc.vehicleColor.masterColor.type,
+        name: tc.vehicleColor.masterColor.name,
+        hexCode: tc.vehicleColor.masterColor.hexCode,
+        price: tc.vehicleColor.price,
+        sortOrder: tc.vehicleColor.sortOrder,
+      },
+    }));
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error fetching trim colors:', error);
     return NextResponse.json({ error: 'Failed to fetch trim colors' }, { status: 500 });
@@ -51,15 +70,29 @@ export async function POST(
       where: { trimId },
     });
 
-    // 새로운 연결 생성
-    const trimColors = await prisma.trimColor.createMany({
-      data: colorIds.map((colorId: string) => ({
-        trimId,
-        colorId,
-      })),
+    // 새로운 연결 생성 (colorIds는 이제 VehicleColor.id 배열)
+    if (colorIds && colorIds.length > 0) {
+      await prisma.trimColor.createMany({
+        data: colorIds.map((vehicleColorId: string) => ({
+          trimId,
+          vehicleColorId,
+        })),
+      });
+    }
+
+    // 생성된 결과 조회하여 반환
+    const createdTrimColors = await prisma.trimColor.findMany({
+      where: { trimId },
+      include: {
+        vehicleColor: {
+          include: {
+            masterColor: true,
+          },
+        },
+      },
     });
 
-    return NextResponse.json(trimColors, { status: 201 });
+    return NextResponse.json(createdTrimColors, { status: 201 });
   } catch (error) {
     console.error('Error creating trim colors:', error);
     return NextResponse.json({ error: 'Failed to create trim colors' }, { status: 500 });
@@ -78,10 +111,10 @@ export async function DELETE(
 
   try {
     const { searchParams } = new URL(request.url);
-    const colorId = searchParams.get('colorId');
+    const vehicleColorId = searchParams.get('vehicleColorId') || searchParams.get('colorId');
 
-    if (!colorId) {
-      return NextResponse.json({ error: 'colorId is required' }, { status: 400 });
+    if (!vehicleColorId) {
+      return NextResponse.json({ error: 'vehicleColorId is required' }, { status: 400 });
     }
 
     const { trimId } = await params;
@@ -89,7 +122,7 @@ export async function DELETE(
     await prisma.trimColor.deleteMany({
       where: {
         trimId,
-        colorId,
+        vehicleColorId,
       },
     });
 

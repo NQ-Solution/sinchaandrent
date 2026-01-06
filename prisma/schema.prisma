@@ -153,17 +153,16 @@ model Trim {
   @@index([vehicleId])
 }
 
-// 색상
+// 색상 (기존 - 마이그레이션 후 제거 예정)
 model Color {
-  id        String      @id @default(cuid())
+  id        String    @id @default(cuid())
   vehicleId String
-  vehicle   Vehicle     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   type      ColorType
   name      String
   hexCode   String // #FFFFFF
-  price     Int         @default(0) // 추가 가격
-  sortOrder Int         @default(0)
-  trims     TrimColor[] // 색상이 적용되는 트림들
+  price     Int       @default(0) // 추가 가격
+  sortOrder Int       @default(0)
 
   @@index([vehicleId])
 }
@@ -175,56 +174,56 @@ enum ColorType {
 
 // 트림별 색상 연결 (다대다 관계)
 model TrimColor {
-  id      String @id @default(cuid())
-  trimId  String
-  trim    Trim   @relation(fields: [trimId], references: [id], onDelete: Cascade)
-  colorId String
-  color   Color  @relation(fields: [colorId], references: [id], onDelete: Cascade)
+  id             String        @id @default(cuid())
+  trimId         String
+  trim           Trim          @relation(fields: [trimId], references: [id], onDelete: Cascade)
+  vehicleColorId String
+  vehicleColor   VehicleColor  @relation(fields: [vehicleColorId], references: [id], onDelete: Cascade)
 
-  @@unique([trimId, colorId])
+  @@unique([trimId, vehicleColorId])
   @@index([trimId])
-  @@index([colorId])
+  @@index([vehicleColorId])
 }
 
-// 옵션
+// 옵션 (기존 - 마이그레이션 후 제거 예정)
 model Option {
-  id          String       @id @default(cuid())
+  id          String  @id @default(cuid())
   vehicleId   String
-  vehicle     Vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicle     Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   name        String
   description String?
-  price       Int          @default(0) // 추가 가격
+  price       Int     @default(0) // 추가 가격
   category    String? // 안전, 편의, 외관 등
-  sortOrder   Int          @default(0)
-  trims       TrimOption[] // 옵션이 적용되는 트림들
+  sortOrder   Int     @default(0)
 
   @@index([vehicleId])
 }
 
 // 트림별 옵션 연결 (다대다 관계)
 model TrimOption {
-  id         String  @id @default(cuid())
-  trimId     String
-  trim       Trim    @relation(fields: [trimId], references: [id], onDelete: Cascade)
-  optionId   String
-  option     Option  @relation(fields: [optionId], references: [id], onDelete: Cascade)
-  isIncluded Boolean @default(false) // true: 기본 포함, false: 추가 옵션
+  id              String         @id @default(cuid())
+  trimId          String
+  trim            Trim           @relation(fields: [trimId], references: [id], onDelete: Cascade)
+  vehicleOptionId String
+  vehicleOption   VehicleOption  @relation(fields: [vehicleOptionId], references: [id], onDelete: Cascade)
+  isIncluded      Boolean        @default(false) // true: 기본 포함, false: 추가 옵션
 
-  @@unique([trimId, optionId])
+  @@unique([trimId, vehicleOptionId])
   @@index([trimId])
-  @@index([optionId])
+  @@index([vehicleOptionId])
 }
 
 // 차량-마스터색상 연결 (차량별 가격 정보 포함)
 model VehicleColor {
-  id            String      @id @default(cuid())
+  id            String       @id @default(cuid())
   vehicleId     String
-  vehicle       Vehicle     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicle       Vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   masterColorId String
-  masterColor   MasterColor @relation(fields: [masterColorId], references: [id], onDelete: Cascade)
-  price         Int         @default(0) // 이 차량에서의 추가 가격 (차량마다 다를 수 있음)
-  sortOrder     Int         @default(0)
-  isAvailable   Boolean     @default(true) // 현재 이 차량에서 선택 가능 여부
+  masterColor   MasterColor  @relation(fields: [masterColorId], references: [id], onDelete: Cascade)
+  price         Int          @default(0) // 이 차량에서의 추가 가격 (차량마다 다를 수 있음)
+  sortOrder     Int          @default(0)
+  isAvailable   Boolean      @default(true) // 현재 이 차량에서 선택 가능 여부
+  trims         TrimColor[]  // 이 색상이 적용되는 트림들
 
   @@unique([vehicleId, masterColorId])
   @@index([vehicleId])
@@ -233,14 +232,15 @@ model VehicleColor {
 
 // 차량-마스터옵션 연결 (차량별 가격 정보 포함)
 model VehicleOption {
-  id             String       @id @default(cuid())
+  id             String        @id @default(cuid())
   vehicleId      String
-  vehicle        Vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicle        Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   masterOptionId String
-  masterOption   MasterOption @relation(fields: [masterOptionId], references: [id], onDelete: Cascade)
-  price          Int          @default(0) // 이 차량에서의 추가 가격 (차량마다 다를 수 있음)
-  sortOrder      Int          @default(0)
-  isAvailable    Boolean      @default(true) // 현재 이 차량에서 선택 가능 여부
+  masterOption   MasterOption  @relation(fields: [masterOptionId], references: [id], onDelete: Cascade)
+  price          Int           @default(0) // 이 차량에서의 추가 가격 (차량마다 다를 수 있음)
+  sortOrder      Int           @default(0)
+  isAvailable    Boolean       @default(true) // 현재 이 차량에서 선택 가능 여부
+  trims          TrimOption[]  // 이 옵션이 적용되는 트림들
 
   @@unique([vehicleId, masterOptionId])
   @@index([vehicleId])

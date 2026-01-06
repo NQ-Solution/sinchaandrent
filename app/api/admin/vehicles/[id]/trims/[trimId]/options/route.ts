@@ -21,11 +21,31 @@ export async function GET(
     const trimOptions = await prisma.trimOption.findMany({
       where: { trimId },
       include: {
-        option: true,
+        vehicleOption: {
+          include: {
+            masterOption: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json(trimOptions);
+    // 기존 형식으로 변환하여 반환
+    const result = trimOptions.map(to => ({
+      id: to.id,
+      trimId: to.trimId,
+      vehicleOptionId: to.vehicleOptionId,
+      isIncluded: to.isIncluded,
+      option: {
+        id: to.vehicleOption.id,
+        name: to.vehicleOption.masterOption.name,
+        description: to.vehicleOption.masterOption.description,
+        category: to.vehicleOption.masterOption.category,
+        price: to.vehicleOption.price,
+        sortOrder: to.vehicleOption.sortOrder,
+      },
+    }));
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error fetching trim options:', error);
     return NextResponse.json({ error: 'Failed to fetch trim options' }, { status: 500 });
@@ -51,16 +71,30 @@ export async function POST(
       where: { trimId },
     });
 
-    // 새로운 연결 생성
-    const trimOptions = await prisma.trimOption.createMany({
-      data: options.map((opt: { optionId: string; isIncluded: boolean }) => ({
-        trimId,
-        optionId: opt.optionId,
-        isIncluded: opt.isIncluded,
-      })),
+    // 새로운 연결 생성 (options 배열에서 optionId는 이제 VehicleOption.id)
+    if (options && options.length > 0) {
+      await prisma.trimOption.createMany({
+        data: options.map((opt: { optionId: string; isIncluded: boolean }) => ({
+          trimId,
+          vehicleOptionId: opt.optionId,
+          isIncluded: opt.isIncluded ?? false,
+        })),
+      });
+    }
+
+    // 생성된 결과 조회하여 반환
+    const createdTrimOptions = await prisma.trimOption.findMany({
+      where: { trimId },
+      include: {
+        vehicleOption: {
+          include: {
+            masterOption: true,
+          },
+        },
+      },
     });
 
-    return NextResponse.json(trimOptions, { status: 201 });
+    return NextResponse.json(createdTrimOptions, { status: 201 });
   } catch (error) {
     console.error('Error creating trim options:', error);
     return NextResponse.json({ error: 'Failed to create trim options' }, { status: 500 });
@@ -79,10 +113,10 @@ export async function DELETE(
 
   try {
     const { searchParams } = new URL(request.url);
-    const optionId = searchParams.get('optionId');
+    const vehicleOptionId = searchParams.get('vehicleOptionId') || searchParams.get('optionId');
 
-    if (!optionId) {
-      return NextResponse.json({ error: 'optionId is required' }, { status: 400 });
+    if (!vehicleOptionId) {
+      return NextResponse.json({ error: 'vehicleOptionId is required' }, { status: 400 });
     }
 
     const { trimId } = await params;
@@ -90,7 +124,7 @@ export async function DELETE(
     await prisma.trimOption.deleteMany({
       where: {
         trimId,
-        optionId,
+        vehicleOptionId,
       },
     });
 

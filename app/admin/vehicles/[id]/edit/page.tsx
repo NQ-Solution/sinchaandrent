@@ -224,9 +224,13 @@ export default function EditVehiclePage() {
               return {
                 ...t,
                 description: t.description || '',
-                colorIds: trimColors.map((tc: { colorId: string }) => tc.colorId),
-                optionSettings: trimOptions.map((to: { optionId: string; isIncluded: boolean }) => ({
-                  optionId: to.optionId,
+                // vehicleColorId는 VehicleColor.id이며 color.id와 동일
+                colorIds: trimColors.map((tc: { vehicleColorId?: string; colorId?: string; color?: { id: string } }) =>
+                  tc.vehicleColorId || tc.color?.id || tc.colorId || ''
+                ),
+                // vehicleOptionId는 VehicleOption.id이며 option.id와 동일
+                optionSettings: trimOptions.map((to: { vehicleOptionId?: string; optionId?: string; option?: { id: string }; isIncluded: boolean }) => ({
+                  optionId: to.vehicleOptionId || to.option?.id || to.optionId || '',
                   isIncluded: to.isIncluded,
                 })),
               };

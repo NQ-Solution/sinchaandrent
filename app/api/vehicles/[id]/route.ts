@@ -23,21 +23,43 @@ export async function GET(
           include: {
             colors: {
               include: {
-                color: true,
+                vehicleColor: {
+                  include: {
+                    masterColor: true,
+                  },
+                },
               },
             },
             options: {
               include: {
-                option: true,
+                vehicleOption: {
+                  include: {
+                    masterOption: true,
+                  },
+                },
               },
             },
           },
         },
+        // 기존 구조 (호환성 유지)
         colors: {
           orderBy: { sortOrder: 'asc' },
         },
         options: {
           orderBy: { sortOrder: 'asc' },
+        },
+        // 새 구조 (VehicleColor/VehicleOption)
+        vehicleColors: {
+          orderBy: { sortOrder: 'asc' },
+          include: {
+            masterColor: true,
+          },
+        },
+        vehicleOptions: {
+          orderBy: { sortOrder: 'asc' },
+          include: {
+            masterOption: true,
+          },
         },
       },
     });
@@ -49,17 +71,54 @@ export async function GET(
       );
     }
 
+    // 새 구조의 색상/옵션을 기존 형식으로 변환
+    const colorsFromNew = vehicle.vehicleColors.map(vc => ({
+      id: vc.id,
+      vehicleId: vc.vehicleId,
+      type: vc.masterColor.type,
+      name: vc.masterColor.name,
+      hexCode: vc.masterColor.hexCode,
+      price: vc.price,
+      sortOrder: vc.sortOrder,
+    }));
+
+    const optionsFromNew = vehicle.vehicleOptions.map(vo => ({
+      id: vo.id,
+      vehicleId: vo.vehicleId,
+      name: vo.masterOption.name,
+      description: vo.masterOption.description,
+      category: vo.masterOption.category,
+      price: vo.price,
+      sortOrder: vo.sortOrder,
+    }));
+
     // 트림별 색상과 옵션 정보를 포맷팅
     const formattedVehicle = {
       ...vehicle,
+      // 새 구조 데이터가 있으면 사용, 없으면 기존 데이터 사용
+      colors: colorsFromNew.length > 0 ? colorsFromNew : vehicle.colors,
+      options: optionsFromNew.length > 0 ? optionsFromNew : vehicle.options,
+      // 내부 필드 제거
+      vehicleColors: undefined,
+      vehicleOptions: undefined,
       trims: vehicle.trims.map(trim => ({
         ...trim,
         availableColors: trim.colors.map(tc => ({
-          ...tc.color,
+          id: tc.vehicleColor.id,
+          type: tc.vehicleColor.masterColor.type,
+          name: tc.vehicleColor.masterColor.name,
+          hexCode: tc.vehicleColor.masterColor.hexCode,
+          price: tc.vehicleColor.price,
+          sortOrder: tc.vehicleColor.sortOrder,
           trimColorId: tc.id,
         })),
         availableOptions: trim.options.map(to => ({
-          ...to.option,
+          id: to.vehicleOption.id,
+          name: to.vehicleOption.masterOption.name,
+          description: to.vehicleOption.masterOption.description,
+          category: to.vehicleOption.masterOption.category,
+          price: to.vehicleOption.price,
+          sortOrder: to.vehicleOption.sortOrder,
           trimOptionId: to.id,
           isIncluded: to.isIncluded,
         })),
