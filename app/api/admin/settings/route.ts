@@ -116,6 +116,9 @@ function getDescription(key: string): string {
     faxNumber: '팩스번호',
     kakaoChannelUrl: '카카오톡 채널 URL',
     youtubeUrl: '유튜브 채널 URL',
+    seoTitle: 'SEO 사이트 제목',
+    seoDescription: 'SEO 사이트 설명',
+    seoKeywords: 'SEO 키워드 (쉼표 구분)',
   };
   return descriptions[key] || key;
 }

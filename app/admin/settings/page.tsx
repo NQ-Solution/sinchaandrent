@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Save, Building2, FileText, Phone, Globe, AlertCircle, Plus, Trash2 } from 'lucide-react';
+import { Save, Building2, FileText, Phone, Globe, AlertCircle, Plus, Trash2, Search } from 'lucide-react';
 import Image from 'next/image';
 
 interface LoanBrokerDocument {
@@ -35,6 +35,11 @@ interface SiteSettings {
 
   // 기타
   privacyOfficer: string;
+
+  // SEO
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
 }
 
 const defaultSettings: SiteSettings = {
@@ -52,6 +57,9 @@ const defaultSettings: SiteSettings = {
   loanBrokerDocuments: [],
   loanBrokerImage: '',
   privacyOfficer: '',
+  seoTitle: '신차앤렌트 - 천안 신차 장기렌트 전문',
+  seoDescription: '천안 지역 신차 장기렌트 전문. 합리적인 가격의 장기렌트 견적/상담 플랫폼',
+  seoKeywords: '천안장기렌트, 천안신차장기렌트, 천안렌트카, 천안자동차렌트, 아산장기렌트, 충남장기렌트, 장기렌트, 신차장기렌트, 법인장기렌트, 개인장기렌트',
 };
 
 export default function AdminSettingsPage() {
@@ -559,6 +567,93 @@ export default function AdminSettingsPage() {
                   <p className="text-sm text-blue-800">
                     <strong>안내:</strong> 대출모집법인은 여신금융협회에 등록되어야 합니다.
                     등록번호와 등록증을 푸터에 표시하여 고객에게 신뢰를 제공하세요.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* SEO 설정 - 전체 너비 */}
+        <div className="mt-6">
+          <Card>
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Search className="w-5 h-5 text-primary" />
+                <h2 className="font-bold text-gray-900">SEO 설정 (검색엔진 최적화)</h2>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    사이트 제목 (Title)
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.seoTitle}
+                    onChange={(e) => setSettings(prev => ({ ...prev, seoTitle: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="예: 신차앤렌트 - 천안 신차 장기렌트 전문"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    검색 결과에 표시되는 사이트 제목입니다. (권장: 50-60자)
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    사이트 설명 (Description)
+                  </label>
+                  <textarea
+                    value={settings.seoDescription}
+                    onChange={(e) => setSettings(prev => ({ ...prev, seoDescription: e.target.value }))}
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="예: 천안 지역 신차 장기렌트 전문. 합리적인 가격의 장기렌트 견적/상담 플랫폼"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    검색 결과에 표시되는 사이트 설명입니다. (권장: 150-160자)
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    키워드 (Keywords)
+                  </label>
+                  <textarea
+                    value={settings.seoKeywords}
+                    onChange={(e) => setSettings(prev => ({ ...prev, seoKeywords: e.target.value }))}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="예: 천안장기렌트, 천안신차장기렌트, 천안렌트카"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    쉼표(,)로 구분하여 입력하세요. 네이버/구글 검색에 사용됩니다.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-amber-50 rounded-lg">
+                  <p className="text-sm text-amber-800">
+                    <strong>현재 설정된 키워드:</strong>
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {settings.seoKeywords.split(',').map((keyword, index) => (
+                      keyword.trim() && (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded-full"
+                        >
+                          {keyword.trim()}
+                        </span>
+                      )
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>안내:</strong> SEO 설정 변경 후 네이버 서치 어드바이저와 구글 서치 콘솔에서
+                    사이트를 재색인 요청하면 검색 결과에 빠르게 반영됩니다.
                   </p>
                 </div>
               </div>
