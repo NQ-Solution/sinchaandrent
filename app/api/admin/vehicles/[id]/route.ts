@@ -143,16 +143,16 @@ export async function PUT(
           rentPrice48_0: data.rentPrice48_0,
           rentPrice36_0: data.rentPrice36_0,
           rentPrice24_0: data.rentPrice24_0,
-          // 보증금 25%
-          rentPrice60_25: data.rentPrice60_25,
-          rentPrice48_25: data.rentPrice48_25,
-          rentPrice36_25: data.rentPrice36_25,
-          rentPrice24_25: data.rentPrice24_25,
-          // 보증금 50%
-          rentPrice60_50: data.rentPrice60_50,
-          rentPrice48_50: data.rentPrice48_50,
-          rentPrice36_50: data.rentPrice36_50,
-          rentPrice24_50: data.rentPrice24_50,
+          // 보증금 30%
+          rentPrice60_30: data.rentPrice60_30,
+          rentPrice48_30: data.rentPrice48_30,
+          rentPrice36_30: data.rentPrice36_30,
+          rentPrice24_30: data.rentPrice24_30,
+          // 보증금 40%
+          rentPrice60_40: data.rentPrice60_40,
+          rentPrice48_40: data.rentPrice48_40,
+          rentPrice36_40: data.rentPrice36_40,
+          rentPrice24_40: data.rentPrice24_40,
           // 모델 정보
           baseModelName: data.baseModelName,
           hasOtherModels: data.hasOtherModels,
@@ -184,16 +184,16 @@ export async function PUT(
         rentPrice48_0: data.rentPrice48_0,
         rentPrice36_0: data.rentPrice36_0,
         rentPrice24_0: data.rentPrice24_0,
-        // 보증금 25%
-        rentPrice60_25: data.rentPrice60_25,
-        rentPrice48_25: data.rentPrice48_25,
-        rentPrice36_25: data.rentPrice36_25,
-        rentPrice24_25: data.rentPrice24_25,
-        // 보증금 50%
-        rentPrice60_50: data.rentPrice60_50,
-        rentPrice48_50: data.rentPrice48_50,
-        rentPrice36_50: data.rentPrice36_50,
-        rentPrice24_50: data.rentPrice24_50,
+        // 보증금 30%
+        rentPrice60_30: data.rentPrice60_30,
+        rentPrice48_30: data.rentPrice48_30,
+        rentPrice36_30: data.rentPrice36_30,
+        rentPrice24_30: data.rentPrice24_30,
+        // 보증금 40%
+        rentPrice60_40: data.rentPrice60_40,
+        rentPrice48_40: data.rentPrice48_40,
+        rentPrice36_40: data.rentPrice36_40,
+        rentPrice24_40: data.rentPrice24_40,
         // 모델 정보
         baseModelName: data.baseModelName,
         hasOtherModels: data.hasOtherModels,

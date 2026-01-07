@@ -74,16 +74,16 @@ export async function POST(request: NextRequest) {
           rentPrice48_0: data.rentPrice48_0 ?? null,
           rentPrice36_0: data.rentPrice36_0 ?? null,
           rentPrice24_0: data.rentPrice24_0 ?? null,
-          // 보증금 25%
-          rentPrice60_25: data.rentPrice60_25 ?? null,
-          rentPrice48_25: data.rentPrice48_25 ?? null,
-          rentPrice36_25: data.rentPrice36_25 ?? null,
-          rentPrice24_25: data.rentPrice24_25 ?? null,
-          // 보증금 50%
-          rentPrice60_50: data.rentPrice60_50 ?? null,
-          rentPrice48_50: data.rentPrice48_50 ?? null,
-          rentPrice36_50: data.rentPrice36_50 ?? null,
-          rentPrice24_50: data.rentPrice24_50 ?? null,
+          // 보증금 30%
+          rentPrice60_30: data.rentPrice60_30 ?? null,
+          rentPrice48_30: data.rentPrice48_30 ?? null,
+          rentPrice36_30: data.rentPrice36_30 ?? null,
+          rentPrice24_30: data.rentPrice24_30 ?? null,
+          // 보증금 40%
+          rentPrice60_40: data.rentPrice60_40 ?? null,
+          rentPrice48_40: data.rentPrice48_40 ?? null,
+          rentPrice36_40: data.rentPrice36_40 ?? null,
+          rentPrice24_40: data.rentPrice24_40 ?? null,
           // 모델 정보
           baseModelName: data.baseModelName ?? null,
           hasOtherModels: data.hasOtherModels ?? true,
@@ -115,16 +115,16 @@ export async function POST(request: NextRequest) {
         rentPrice48_0: data.rentPrice48_0 ?? null,
         rentPrice36_0: data.rentPrice36_0 ?? null,
         rentPrice24_0: data.rentPrice24_0 ?? null,
-        // 보증금 25%
-        rentPrice60_25: data.rentPrice60_25 ?? null,
-        rentPrice48_25: data.rentPrice48_25 ?? null,
-        rentPrice36_25: data.rentPrice36_25 ?? null,
-        rentPrice24_25: data.rentPrice24_25 ?? null,
-        // 보증금 50%
-        rentPrice60_50: data.rentPrice60_50 ?? null,
-        rentPrice48_50: data.rentPrice48_50 ?? null,
-        rentPrice36_50: data.rentPrice36_50 ?? null,
-        rentPrice24_50: data.rentPrice24_50 ?? null,
+        // 보증금 30%
+        rentPrice60_30: data.rentPrice60_30 ?? null,
+        rentPrice48_30: data.rentPrice48_30 ?? null,
+        rentPrice36_30: data.rentPrice36_30 ?? null,
+        rentPrice24_30: data.rentPrice24_30 ?? null,
+        // 보증금 40%
+        rentPrice60_40: data.rentPrice60_40 ?? null,
+        rentPrice48_40: data.rentPrice48_40 ?? null,
+        rentPrice36_40: data.rentPrice36_40 ?? null,
+        rentPrice24_40: data.rentPrice24_40 ?? null,
         // 모델 정보
         baseModelName: data.baseModelName ?? null,
         hasOtherModels: data.hasOtherModels ?? true,

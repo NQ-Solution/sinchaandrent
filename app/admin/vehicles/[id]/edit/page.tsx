@@ -101,16 +101,16 @@ export default function EditVehiclePage() {
     rentPrice48_0: '',
     rentPrice36_0: '',
     rentPrice24_0: '',
-    // 보증금 25%
-    rentPrice60_25: '',
-    rentPrice48_25: '',
-    rentPrice36_25: '',
-    rentPrice24_25: '',
-    // 보증금 50%
-    rentPrice60_50: '',
-    rentPrice48_50: '',
-    rentPrice36_50: '',
-    rentPrice24_50: '',
+    // 보증금 30%
+    rentPrice60_30: '',
+    rentPrice48_30: '',
+    rentPrice36_30: '',
+    rentPrice24_30: '',
+    // 보증금 40%
+    rentPrice60_40: '',
+    rentPrice48_40: '',
+    rentPrice36_40: '',
+    rentPrice24_40: '',
     isPopular: false,
     isNew: false,
     isActive: true,
@@ -189,16 +189,16 @@ export default function EditVehiclePage() {
           rentPrice48_0: vehicle.rentPrice48_0?.toString() || '',
           rentPrice36_0: vehicle.rentPrice36_0?.toString() || '',
           rentPrice24_0: vehicle.rentPrice24_0?.toString() || '',
-          // 보증금 25%
-          rentPrice60_25: vehicle.rentPrice60_25?.toString() || '',
-          rentPrice48_25: vehicle.rentPrice48_25?.toString() || '',
-          rentPrice36_25: vehicle.rentPrice36_25?.toString() || '',
-          rentPrice24_25: vehicle.rentPrice24_25?.toString() || '',
-          // 보증금 50%
-          rentPrice60_50: vehicle.rentPrice60_50?.toString() || '',
-          rentPrice48_50: vehicle.rentPrice48_50?.toString() || '',
-          rentPrice36_50: vehicle.rentPrice36_50?.toString() || '',
-          rentPrice24_50: vehicle.rentPrice24_50?.toString() || '',
+          // 보증금 30%
+          rentPrice60_30: vehicle.rentPrice60_30?.toString() || '',
+          rentPrice48_30: vehicle.rentPrice48_30?.toString() || '',
+          rentPrice36_30: vehicle.rentPrice36_30?.toString() || '',
+          rentPrice24_30: vehicle.rentPrice24_30?.toString() || '',
+          // 보증금 40%
+          rentPrice60_40: vehicle.rentPrice60_40?.toString() || '',
+          rentPrice48_40: vehicle.rentPrice48_40?.toString() || '',
+          rentPrice36_40: vehicle.rentPrice36_40?.toString() || '',
+          rentPrice24_40: vehicle.rentPrice24_40?.toString() || '',
           isPopular: vehicle.isPopular,
           isNew: vehicle.isNew,
           isActive: vehicle.isActive,
@@ -725,16 +725,16 @@ export default function EditVehiclePage() {
           rentPrice48_0: formData.rentPrice48_0 ? parseInt(formData.rentPrice48_0) : null,
           rentPrice36_0: formData.rentPrice36_0 ? parseInt(formData.rentPrice36_0) : null,
           rentPrice24_0: formData.rentPrice24_0 ? parseInt(formData.rentPrice24_0) : null,
-          // 보증금 25%
-          rentPrice60_25: formData.rentPrice60_25 ? parseInt(formData.rentPrice60_25) : null,
-          rentPrice48_25: formData.rentPrice48_25 ? parseInt(formData.rentPrice48_25) : null,
-          rentPrice36_25: formData.rentPrice36_25 ? parseInt(formData.rentPrice36_25) : null,
-          rentPrice24_25: formData.rentPrice24_25 ? parseInt(formData.rentPrice24_25) : null,
-          // 보증금 50%
-          rentPrice60_50: formData.rentPrice60_50 ? parseInt(formData.rentPrice60_50) : null,
-          rentPrice48_50: formData.rentPrice48_50 ? parseInt(formData.rentPrice48_50) : null,
-          rentPrice36_50: formData.rentPrice36_50 ? parseInt(formData.rentPrice36_50) : null,
-          rentPrice24_50: formData.rentPrice24_50 ? parseInt(formData.rentPrice24_50) : null,
+          // 보증금 30%
+          rentPrice60_30: formData.rentPrice60_30 ? parseInt(formData.rentPrice60_30) : null,
+          rentPrice48_30: formData.rentPrice48_30 ? parseInt(formData.rentPrice48_30) : null,
+          rentPrice36_30: formData.rentPrice36_30 ? parseInt(formData.rentPrice36_30) : null,
+          rentPrice24_30: formData.rentPrice24_30 ? parseInt(formData.rentPrice24_30) : null,
+          // 보증금 40%
+          rentPrice60_40: formData.rentPrice60_40 ? parseInt(formData.rentPrice60_40) : null,
+          rentPrice48_40: formData.rentPrice48_40 ? parseInt(formData.rentPrice48_40) : null,
+          rentPrice36_40: formData.rentPrice36_40 ? parseInt(formData.rentPrice36_40) : null,
+          rentPrice24_40: formData.rentPrice24_40 ? parseInt(formData.rentPrice24_40) : null,
           // 모델 정보
           baseModelName: formData.baseModelName || null,
           hasOtherModels: formData.hasOtherModels,
@@ -1141,63 +1141,63 @@ export default function EditVehiclePage() {
                     </div>
                   </div>
 
-                  {/* 보증금 25% */}
+                  {/* 보증금 30% */}
                   <div className="p-4 bg-green-50 rounded-lg">
-                    <h4 className="font-medium text-green-800 mb-3">보증금 25%</h4>
+                    <h4 className="font-medium text-green-800 mb-3">보증금 30%</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <PriceInput
                         label="60개월"
-                        value={formData.rentPrice60_25}
-                        onChange={(value) => setFormData({ ...formData, rentPrice60_25: value })}
+                        value={formData.rentPrice60_30}
+                        onChange={(value) => setFormData({ ...formData, rentPrice60_30: value })}
                         placeholder="월 납입금"
                       />
                       <PriceInput
                         label="48개월"
-                        value={formData.rentPrice48_25}
-                        onChange={(value) => setFormData({ ...formData, rentPrice48_25: value })}
+                        value={formData.rentPrice48_30}
+                        onChange={(value) => setFormData({ ...formData, rentPrice48_30: value })}
                         placeholder="월 납입금"
                       />
                       <PriceInput
                         label="36개월"
-                        value={formData.rentPrice36_25}
-                        onChange={(value) => setFormData({ ...formData, rentPrice36_25: value })}
+                        value={formData.rentPrice36_30}
+                        onChange={(value) => setFormData({ ...formData, rentPrice36_30: value })}
                         placeholder="월 납입금"
                       />
                       <PriceInput
                         label="24개월"
-                        value={formData.rentPrice24_25}
-                        onChange={(value) => setFormData({ ...formData, rentPrice24_25: value })}
+                        value={formData.rentPrice24_30}
+                        onChange={(value) => setFormData({ ...formData, rentPrice24_30: value })}
                         placeholder="월 납입금"
                       />
                     </div>
                   </div>
 
-                  {/* 보증금 50% */}
+                  {/* 보증금 40% */}
                   <div className="p-4 bg-yellow-50 rounded-lg">
-                    <h4 className="font-medium text-yellow-800 mb-3">보증금 50%</h4>
+                    <h4 className="font-medium text-yellow-800 mb-3">보증금 40%</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <PriceInput
                         label="60개월"
-                        value={formData.rentPrice60_50}
-                        onChange={(value) => setFormData({ ...formData, rentPrice60_50: value })}
+                        value={formData.rentPrice60_40}
+                        onChange={(value) => setFormData({ ...formData, rentPrice60_40: value })}
                         placeholder="월 납입금"
                       />
                       <PriceInput
                         label="48개월"
-                        value={formData.rentPrice48_50}
-                        onChange={(value) => setFormData({ ...formData, rentPrice48_50: value })}
+                        value={formData.rentPrice48_40}
+                        onChange={(value) => setFormData({ ...formData, rentPrice48_40: value })}
                         placeholder="월 납입금"
                       />
                       <PriceInput
                         label="36개월"
-                        value={formData.rentPrice36_50}
-                        onChange={(value) => setFormData({ ...formData, rentPrice36_50: value })}
+                        value={formData.rentPrice36_40}
+                        onChange={(value) => setFormData({ ...formData, rentPrice36_40: value })}
                         placeholder="월 납입금"
                       />
                       <PriceInput
                         label="24개월"
-                        value={formData.rentPrice24_50}
-                        onChange={(value) => setFormData({ ...formData, rentPrice24_50: value })}
+                        value={formData.rentPrice24_40}
+                        onChange={(value) => setFormData({ ...formData, rentPrice24_40: value })}
                         placeholder="월 납입금"
                       />
                     </div>

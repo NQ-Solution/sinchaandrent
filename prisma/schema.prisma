@@ -71,14 +71,14 @@ model Vehicle {
   rentPrice48_0      Int?
   rentPrice36_0      Int?
   rentPrice24_0      Int?
-  rentPrice60_25     Int?
-  rentPrice48_25     Int?
-  rentPrice36_25     Int?
-  rentPrice24_25     Int?
-  rentPrice60_50     Int?
-  rentPrice48_50     Int?
-  rentPrice36_50     Int?
-  rentPrice24_50     Int?
+  rentPrice60_30     Int?
+  rentPrice48_30     Int?
+  rentPrice36_30     Int?
+  rentPrice24_30     Int?
+  rentPrice60_40     Int?
+  rentPrice48_40     Int?
+  rentPrice36_40     Int?
+  rentPrice24_40     Int?
   thumbnail          String?
   images             String[]
   isPopular          Boolean         @default(false)

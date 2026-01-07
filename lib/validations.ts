@@ -35,16 +35,16 @@ export const VehicleSchema = z.object({
   rentPrice48_0: z.number().int().min(0).nullable().optional(),
   rentPrice36_0: z.number().int().min(0).nullable().optional(),
   rentPrice24_0: z.number().int().min(0).nullable().optional(),
-  // 보증금 25%
-  rentPrice60_25: z.number().int().min(0).nullable().optional(),
-  rentPrice48_25: z.number().int().min(0).nullable().optional(),
-  rentPrice36_25: z.number().int().min(0).nullable().optional(),
-  rentPrice24_25: z.number().int().min(0).nullable().optional(),
-  // 보증금 50%
-  rentPrice60_50: z.number().int().min(0).nullable().optional(),
-  rentPrice48_50: z.number().int().min(0).nullable().optional(),
-  rentPrice36_50: z.number().int().min(0).nullable().optional(),
-  rentPrice24_50: z.number().int().min(0).nullable().optional(),
+  // 보증금 30%
+  rentPrice60_30: z.number().int().min(0).nullable().optional(),
+  rentPrice48_30: z.number().int().min(0).nullable().optional(),
+  rentPrice36_30: z.number().int().min(0).nullable().optional(),
+  rentPrice24_30: z.number().int().min(0).nullable().optional(),
+  // 보증금 40%
+  rentPrice60_40: z.number().int().min(0).nullable().optional(),
+  rentPrice48_40: z.number().int().min(0).nullable().optional(),
+  rentPrice36_40: z.number().int().min(0).nullable().optional(),
+  rentPrice24_40: z.number().int().min(0).nullable().optional(),
   thumbnail: z.string().nullable().optional(),
   images: z.array(z.string()).default([]),
   imageSizePreset: z.string().nullable().optional(),

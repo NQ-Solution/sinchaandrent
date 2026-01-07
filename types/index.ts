@@ -32,16 +32,16 @@ export interface Vehicle {
   rentPrice48_0?: number | null;
   rentPrice36_0?: number | null;
   rentPrice24_0?: number | null;
-  // 보증금 25% 렌트 가격
-  rentPrice60_25?: number | null;
-  rentPrice48_25?: number | null;
-  rentPrice36_25?: number | null;
-  rentPrice24_25?: number | null;
-  // 보증금 50% 렌트 가격
-  rentPrice60_50?: number | null;
-  rentPrice48_50?: number | null;
-  rentPrice36_50?: number | null;
-  rentPrice24_50?: number | null;
+  // 보증금 30% 렌트 가격
+  rentPrice60_30?: number | null;
+  rentPrice48_30?: number | null;
+  rentPrice36_30?: number | null;
+  rentPrice24_30?: number | null;
+  // 보증금 40% 렌트 가격
+  rentPrice60_40?: number | null;
+  rentPrice48_40?: number | null;
+  rentPrice36_40?: number | null;
+  rentPrice24_40?: number | null;
   thumbnail?: string | null;
   images: string[];
   imageSizePreset?: string | null;
