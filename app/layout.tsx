@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_KR } from "next/font/google";
-import Script from "next/script";
+// import Script from "next/script"; // 구글 애널리틱스 활성화 시 주석 해제
 import "./globals.css";
 import { Providers } from "@/lib/providers";
 
