@@ -771,6 +771,7 @@ export default function EditVehiclePage() {
           const createdTrim = await res.json();
           trimId = createdTrim.id;
         } else if (trim.id) {
+          trimId = trim.id; // 기존 트림의 ID 설정
           await fetch(`/api/admin/vehicles/${id}/trims`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },

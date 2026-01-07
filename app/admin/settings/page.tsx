@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Save, Building2, FileText, Phone, Globe, AlertCircle, Plus, Trash2, Search } from 'lucide-react';
+import { Save, Building2, FileText, Phone, Globe, AlertCircle, Plus, Trash2, Search, Download, Database, Lock } from 'lucide-react';
 import Image from 'next/image';
 
 interface LoanBrokerDocument {
@@ -67,6 +67,57 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // 비밀번호 변경 관련
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordChanging, setPasswordChanging] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handlePasswordChange = async () => {
+    setPasswordMessage(null);
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordMessage({ type: 'error', text: '모든 필드를 입력해주세요.' });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({ type: 'error', text: '새 비밀번호가 일치하지 않습니다.' });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordMessage({ type: 'error', text: '새 비밀번호는 6자 이상이어야 합니다.' });
+      return;
+    }
+
+    setPasswordChanging(true);
+
+    try {
+      const res = await fetch('/api/admin/password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setPasswordMessage({ type: 'success', text: '비밀번호가 변경되었습니다.' });
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        setPasswordMessage({ type: 'error', text: data.error || '비밀번호 변경에 실패했습니다.' });
+      }
+    } catch {
+      setPasswordMessage({ type: 'error', text: '오류가 발생했습니다.' });
+    } finally {
+      setPasswordChanging(false);
+    }
+  };
 
   useEffect(() => {
     async function fetchSettings() {
@@ -661,6 +712,44 @@ export default function AdminSettingsPage() {
           </Card>
         </div>
 
+        {/* DB 백업 - 전체 너비 */}
+        <div className="mt-6">
+          <Card>
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Database className="w-5 h-5 text-primary" />
+                <h2 className="font-bold text-gray-900">데이터베이스 백업</h2>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  현재 데이터베이스의 모든 데이터를 JSON 파일로 백업합니다.
+                  브랜드, 차량, 트림, 색상, 옵션, FAQ, 배너, 파트너, 설정 등 모든 데이터가 포함됩니다.
+                </p>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    window.location.href = '/api/admin/backup';
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  백업 파일 다운로드
+                </Button>
+
+                <div className="p-4 bg-amber-50 rounded-lg">
+                  <p className="text-sm text-amber-800">
+                    <strong>권장:</strong> 중요한 변경 작업 전후로 백업을 생성해 두세요.
+                    백업 파일은 데이터 복구 시 사용할 수 있습니다.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Save Button */}
         <div className="mt-6 flex justify-end">
           <Button type="submit" disabled={saving} className="min-w-32">
@@ -675,6 +764,88 @@ export default function AdminSettingsPage() {
           </Button>
         </div>
       </form>
+
+      {/* 비밀번호 변경 - form 외부 */}
+      <div className="mt-6">
+        <Card>
+          <CardContent className="p-4 md:p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Lock className="w-5 h-5 text-primary" />
+              <h2 className="font-bold text-gray-900">비밀번호 변경</h2>
+            </div>
+
+            {passwordMessage && (
+              <div
+                className={`mb-4 p-3 rounded-lg flex items-start gap-2 ${
+                  passwordMessage.type === 'success'
+                    ? 'bg-green-50 border border-green-200 text-green-800'
+                    : 'bg-red-50 border border-red-200 text-red-800'
+                }`}
+              >
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <p className="text-sm">{passwordMessage.text}</p>
+              </div>
+            )}
+
+            <div className="space-y-4 max-w-md">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  현재 비밀번호
+                </label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="현재 비밀번호 입력"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  새 비밀번호
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="새 비밀번호 입력 (6자 이상)"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  새 비밀번호 확인
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="새 비밀번호 다시 입력"
+                />
+              </div>
+
+              <Button
+                type="button"
+                onClick={handlePasswordChange}
+                disabled={passwordChanging}
+                className="flex items-center gap-2"
+              >
+                {passwordChanging ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                ) : (
+                  <>
+                    <Lock className="w-4 h-4" />
+                    비밀번호 변경
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

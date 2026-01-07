@@ -75,15 +75,6 @@ export default function AdminLoginPage() {
               {loading ? '로그인 중...' : '로그인'}
             </Button>
           </form>
-
-          {/* 초기 계정 안내 */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500 text-center mb-2">초기 계정 정보</p>
-            <div className="text-sm text-gray-700 space-y-1">
-              <p><span className="text-gray-500">이메일:</span> admin@sincharent.com</p>
-              <p><span className="text-gray-500">비밀번호:</span> admin1234</p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
