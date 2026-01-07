@@ -71,14 +71,6 @@ model Vehicle {
   rentPrice48_0      Int?
   rentPrice36_0      Int?
   rentPrice24_0      Int?
-  rentPrice60_30     Int?
-  rentPrice48_30     Int?
-  rentPrice36_30     Int?
-  rentPrice24_30     Int?
-  rentPrice60_40     Int?
-  rentPrice48_40     Int?
-  rentPrice36_40     Int?
-  rentPrice24_40     Int?
   thumbnail          String?
   images             String[]
   isPopular          Boolean         @default(false)
@@ -91,6 +83,14 @@ model Vehicle {
   imageSizePreset    String?
   baseModelName      String?
   hasOtherModels     Boolean         @default(true)
+  rentPrice60_30     Int?
+  rentPrice48_30     Int?
+  rentPrice36_30     Int?
+  rentPrice24_30     Int?
+  rentPrice60_40     Int?
+  rentPrice48_40     Int?
+  rentPrice36_40     Int?
+  rentPrice24_40     Int?
   colors             Color[]
   options            Option[]
   trims              Trim[]
@@ -264,6 +264,16 @@ model CompanyInfo {
   updatedAt   DateTime @updatedAt
 }
 
+model Backup {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  data        String
+  size        Int
+  createdAt   DateTime @default(now())
+  createdBy   String?
+}
+
 enum VehicleCategory {
   SEDAN
   SUV
@@ -279,15 +289,4 @@ enum VehicleCategory {
 enum ColorType {
   EXTERIOR
   INTERIOR
-}
-
-// DB 백업
-model Backup {
-  id          String   @id @default(cuid())
-  name        String   // 백업 이름 (예: "2024-01-07 수동 백업")
-  description String?  // 백업 설명
-  data        String   // 압축된 백업 데이터 (JSON)
-  size        Int      // 데이터 크기 (bytes)
-  createdAt   DateTime @default(now())
-  createdBy   String?  // 백업 생성자 (관리자 이메일)
 }
