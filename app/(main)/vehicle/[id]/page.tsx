@@ -48,7 +48,7 @@ interface VehicleWithOptions extends Omit<Vehicle, 'trims' | 'colors' | 'options
 }
 
 const CONTRACT_PERIODS = [24, 36, 48, 60];
-const DEPOSIT_RATIOS = [0, 25, 50];
+const DEPOSIT_RATIOS = [0, 30, 40];
 
 export default function VehicleDetailPage() {
   const params = useParams();
@@ -71,6 +71,7 @@ export default function VehicleDetailPage() {
   const [period, setPeriod] = useState(60);
   const [depositRatio, setDepositRatio] = useState(0);
   const [companyInfo, setCompanyInfo] = useState<{ phone?: string; kakaoUrl?: string; companyName?: string }>({});
+  const [isNearFooter, setIsNearFooter] = useState(false);
 
   const phoneNumber = companyInfo.phone || process.env.NEXT_PUBLIC_PHONE_NUMBER || '1588-0000';
   const kakaoUrl = companyInfo.kakaoUrl || process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || '#';
@@ -168,6 +169,24 @@ export default function VehicleDetailPage() {
       document.body.style.overflow = 'unset';
     };
   }, [showMobileSummary]);
+
+  // 푸터 근처 감지 - 하단 바 숨김 처리
+  useEffect(() => {
+    const handleScroll = () => {
+      const footer = document.querySelector('footer');
+      if (footer) {
+        const footerRect = footer.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        // 푸터가 화면에 보이기 시작하면 하단 바 숨김
+        setIsNearFooter(footerRect.top < windowHeight);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const basePrice = vehicle?.basePrice || 0;
   const trimPrice = selectedTrim?.price || 0;
@@ -536,22 +555,20 @@ export default function VehicleDetailPage() {
                             : 'border-gray-100 hover:border-primary/50'
                         }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                              selectedTrim?.id === trim.id ? 'border-primary bg-primary' : 'border-gray-300'
-                            }`}>
-                              {selectedTrim?.id === trim.id && <Check className="w-4 h-4 text-white" />}
-                            </div>
-                            <div>
-                              <p className="font-bold text-lg">{trim.name}</p>
+                        <div className="flex items-center gap-3">
+                          <div className={`w-6 h-6 flex-shrink-0 rounded-full border-2 flex items-center justify-center ${
+                            selectedTrim?.id === trim.id ? 'border-primary bg-primary' : 'border-gray-300'
+                          }`}>
+                            {selectedTrim?.id === trim.id && <Check className="w-4 h-4 text-white" />}
+                          </div>
+                          <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="font-bold text-base sm:text-lg break-keep">{trim.name}</p>
                               {trim.description && (
-                                <p className="text-sm text-gray-500">{trim.description}</p>
+                                <p className="text-sm text-gray-500 break-keep">{trim.description}</p>
                               )}
                             </div>
-                          </div>
-                          <div className="text-right">
-                            <p className={`font-bold ${trim.price === 0 ? 'text-gray-600' : 'text-primary'}`}>
+                            <p className={`font-bold text-sm sm:text-base whitespace-nowrap flex-shrink-0 ${trim.price === 0 ? 'text-gray-600' : 'text-primary'}`}>
                               {trim.price === 0 ? '기본' : `+${formatPrice(trim.price)}원`}
                             </p>
                           </div>
@@ -671,19 +688,19 @@ export default function VehicleDetailPage() {
                             {(isSelected || isIncluded) && <Check className="w-4 h-4 text-white" />}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="font-semibold">{option.name}</p>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-semibold break-keep">{option.name}</p>
                               {isIncluded && (
-                                <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                                <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full whitespace-nowrap">
                                   기본 포함
                                 </span>
                               )}
                             </div>
                             {option.description && (
-                              <p className="text-sm text-gray-500 truncate">{option.description}</p>
+                              <p className="text-sm text-gray-500 break-keep line-clamp-2">{option.description}</p>
                             )}
                           </div>
-                          <p className={`font-bold flex-shrink-0 ${isIncluded ? 'text-green-600' : 'text-primary'}`}>
+                          <p className={`font-bold text-sm sm:text-base flex-shrink-0 whitespace-nowrap ${isIncluded ? 'text-green-600' : 'text-primary'}`}>
                             {isIncluded ? '포함' : `+${formatPrice(option.price)}원`}
                           </p>
                         </button>
@@ -899,36 +916,56 @@ export default function VehicleDetailPage() {
       </div>
 
       {/* Mobile Bottom Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-2xl z-40">
-        <div className="p-4">
-          <button
-            onClick={() => setShowMobileSummary(true)}
-            className="w-full flex items-center justify-between mb-3"
-          >
-            <div>
-              <p className="text-xs text-gray-500">
-                {hasAdditionalCost ? '맞춤 견적' : '예상 월 납입금'}
-              </p>
-              <p className={`text-xl font-black ${hasAdditionalCost ? 'text-orange-500' : 'text-primary'}`}>
-                {hasMonthlyPayment && !hasAdditionalCost ? `${formatPrice(getMonthlyPaymentFromDB!)}원~` : '상담 필요'}
-              </p>
-            </div>
-            <div className="flex items-center gap-1 text-sm text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
-              상세보기
-              <ChevronUp className="w-4 h-4" />
-            </div>
-          </button>
+      <div className={`lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-40 transition-transform duration-300 ${
+        isNearFooter ? 'translate-y-full' : 'translate-y-0'
+      }`}>
+        <div className="safe-area-bottom">
+          <div className="px-4 py-3">
+            {/* 가격 정보 및 상세보기 */}
+            <button
+              onClick={() => setShowMobileSummary(true)}
+              className="w-full flex items-center justify-between mb-3 active:opacity-70 transition-opacity"
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  hasAdditionalCost ? 'bg-orange-100' : 'bg-primary/10'
+                }`}>
+                  <Calendar className={`w-5 h-5 ${hasAdditionalCost ? 'text-orange-500' : 'text-primary'}`} />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-gray-500">
+                    {hasAdditionalCost ? '맞춤 견적' : `${period}개월 · 보증금 ${depositRatio}%`}
+                  </p>
+                  <p className={`text-lg font-black ${hasAdditionalCost ? 'text-orange-500' : 'text-gray-900'}`}>
+                    {hasMonthlyPayment && !hasAdditionalCost ? (
+                      <>월 {formatPrice(getMonthlyPaymentFromDB!)}<span className="text-sm font-normal text-gray-400">원~</span></>
+                    ) : (
+                      '상담 필요'
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded-full">
+                상세
+                <ChevronUp className="w-3 h-3" />
+              </div>
+            </button>
 
-          <div className="flex gap-2">
-            <Button asChild variant="outline" className="flex-1 rounded-full">
-              <a href={`tel:${phoneNumber}`} className="flex items-center justify-center gap-1">
-                <Phone className="w-4 h-4" />
-                전화
-              </a>
-            </Button>
-            <Button asChild className="flex-1 rounded-full">
-              <Link href="/contact">상담 신청</Link>
-            </Button>
+            {/* 버튼 영역 */}
+            <div className="flex gap-2">
+              <Button asChild variant="outline" className="flex-1 h-11 rounded-full border-gray-300">
+                <a href={`tel:${phoneNumber}`} className="flex items-center justify-center gap-1.5">
+                  <Phone className="w-4 h-4" />
+                  <span className="font-medium">전화</span>
+                </a>
+              </Button>
+              <Button asChild className="flex-1 h-11 rounded-full">
+                <Link href="/contact" className="flex items-center justify-center gap-1.5">
+                  <MessageCircle className="w-4 h-4" />
+                  <span className="font-medium">상담 신청</span>
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>

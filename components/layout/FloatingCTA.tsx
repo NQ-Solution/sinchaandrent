@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Phone, Youtube, MessageCircle, X } from 'lucide-react';
 
 // 카카오톡 공식 아이콘 (SVG)
@@ -23,13 +24,36 @@ interface CompanyInfo {
 }
 
 export function FloatingCTA() {
+  const pathname = usePathname();
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isNearFooter, setIsNearFooter] = useState(false);
 
   const phoneNumber = companyInfo.phone || '';
   const kakaoUrl = companyInfo.kakaoChannelUrl || '#';
   const youtubeUrl = companyInfo.youtubeUrl || 'https://www.youtube.com';
+
+  // 차량 상세 페이지에서는 모바일에서 하단 바와 겹치므로 위치 조정
+  const isVehicleDetailPage = pathname?.startsWith('/vehicle/');
+
+  // 푸터 근처 감지
+  useEffect(() => {
+    const handleScroll = () => {
+      const footer = document.querySelector('footer');
+      if (footer) {
+        const footerRect = footer.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        // 푸터가 화면에 100px 이상 보이면 숨김
+        setIsNearFooter(footerRect.top < windowHeight - 100);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // 초기 체크
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     async function fetchCompanyInfo() {
@@ -52,8 +76,15 @@ export function FloatingCTA() {
   const [showKakaoTooltip, setShowKakaoTooltip] = useState(false);
   const [showYoutubeTooltip, setShowYoutubeTooltip] = useState(false);
 
+  // 푸터 근처면 숨김
+  if (isNearFooter) {
+    return null;
+  }
+
   return (
-    <div className="fixed bottom-6 right-6 flex flex-col items-end gap-3 z-40">
+    <div className={`fixed right-4 md:right-6 flex flex-col items-end gap-3 z-40 transition-all duration-300 ${
+      isVehicleDetailPage ? 'bottom-28 lg:bottom-6' : 'bottom-6'
+    }`}>
       {/* 펼쳐진 상태의 버튼들 */}
       <div className={`flex flex-col gap-3 transition-all duration-300 ${
         isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'

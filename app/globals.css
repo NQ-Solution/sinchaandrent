@@ -17,6 +17,19 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* 한글 단어 단위로 줄바꿈 (단어 중간에서 끊기지 않음) */
+  .break-keep {
+    word-break: keep-all;
+  }
+
+  /* 여러 줄 말줄임 */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
 
 /* Bottom Sheet Animation */
@@ -41,4 +54,25 @@ body {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Safe area for iOS devices */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
 }
