@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import {
@@ -36,6 +36,13 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ userName }: AdminSidebarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    router.push('/admin/login');
+    router.refresh();
+  };
 
   // Close mobile menu when path changes
   useEffect(() => {
@@ -117,7 +124,7 @@ export default function AdminSidebar({ userName }: AdminSidebarProps) {
           <div className="border-t border-gray-700 pt-4">
             <p className="text-sm text-gray-400 mb-2">{userName}</p>
             <button
-              onClick={() => signOut({ callbackUrl: '/admin/login' })}
+              onClick={handleLogout}
               className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
             >
               <LogOut className="w-4 h-4" />

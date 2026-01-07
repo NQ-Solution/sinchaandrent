@@ -75,6 +75,75 @@ export default function AdminSettingsPage() {
   const [passwordChanging, setPasswordChanging] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // 백업 관련
+  interface BackupItem {
+    id: string;
+    name: string;
+    description: string | null;
+    size: number;
+    createdAt: string;
+    createdBy: string | null;
+  }
+  const [backups, setBackups] = useState<BackupItem[]>([]);
+  const [backupCreating, setBackupCreating] = useState(false);
+
+  const fetchBackups = async () => {
+    try {
+      const res = await fetch('/api/admin/backup');
+      if (res.ok) {
+        const data = await res.json();
+        setBackups(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch backups:', error);
+    }
+  };
+
+  const createBackup = async () => {
+    setBackupCreating(true);
+    try {
+      const res = await fetch('/api/admin/backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      if (res.ok) {
+        await fetchBackups();
+        setMessage({ type: 'success', text: '백업이 생성되었습니다.' });
+      } else {
+        setMessage({ type: 'error', text: '백업 생성에 실패했습니다.' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: '백업 생성 중 오류가 발생했습니다.' });
+    } finally {
+      setBackupCreating(false);
+    }
+  };
+
+  const downloadBackup = (backupId: string) => {
+    window.location.href = `/api/admin/backup?download=true&id=${backupId}`;
+  };
+
+  const deleteBackup = async (backupId: string) => {
+    if (!confirm('이 백업을 삭제하시겠습니까?')) return;
+    try {
+      const res = await fetch(`/api/admin/backup?id=${backupId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        await fetchBackups();
+      }
+    } catch (error) {
+      console.error('Failed to delete backup:', error);
+    }
+  };
+
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
   const handlePasswordChange = async () => {
     setPasswordMessage(null);
 
@@ -149,6 +218,7 @@ export default function AdminSettingsPage() {
       }
     }
     fetchSettings();
+    fetchBackups();
   }, []);
 
   // 다중 등록증 관리
@@ -716,33 +786,96 @@ export default function AdminSettingsPage() {
         <div className="mt-6">
           <Card>
             <CardContent className="p-4 md:p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Database className="w-5 h-5 text-primary" />
-                <h2 className="font-bold text-gray-900">데이터베이스 백업</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Database className="w-5 h-5 text-primary" />
+                  <h2 className="font-bold text-gray-900">데이터베이스 백업</h2>
+                </div>
+                <Button
+                  type="button"
+                  onClick={createBackup}
+                  disabled={backupCreating}
+                  className="flex items-center gap-2"
+                >
+                  {backupCreating ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                  ) : (
+                    <>
+                      <Database className="w-4 h-4" />
+                      새 백업 생성
+                    </>
+                  )}
+                </Button>
               </div>
 
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">
-                  현재 데이터베이스의 모든 데이터를 JSON 파일로 백업합니다.
-                  브랜드, 차량, 트림, 색상, 옵션, FAQ, 배너, 파트너, 설정 등 모든 데이터가 포함됩니다.
+                  DB에 저장된 백업 목록입니다. 최대 3개까지 저장되며, 초과 시 오래된 백업이 자동 삭제됩니다.
                 </p>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    window.location.href = '/api/admin/backup';
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  백업 파일 다운로드
-                </Button>
+                {/* 백업 목록 */}
+                {backups.length === 0 ? (
+                  <div className="p-4 bg-gray-50 rounded-lg text-center">
+                    <p className="text-sm text-gray-500">저장된 백업이 없습니다.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {backups.map((backup) => (
+                      <div
+                        key={backup.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900 text-sm">{backup.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(backup.createdAt).toLocaleString('ko-KR')} · {formatBytes(backup.size)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => downloadBackup(backup.id)}
+                            className="flex items-center gap-1"
+                          >
+                            <Download className="w-3 h-3" />
+                            다운로드
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteBackup(backup.id)}
+                            className="flex items-center gap-1 text-red-500 hover:text-red-600 hover:border-red-300"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 즉시 다운로드 */}
+                <div className="pt-4 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      window.location.href = '/api/admin/backup?download=now';
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    즉시 다운로드 (DB 저장 안함)
+                  </Button>
+                </div>
 
                 <div className="p-4 bg-amber-50 rounded-lg">
                   <p className="text-sm text-amber-800">
-                    <strong>권장:</strong> 중요한 변경 작업 전후로 백업을 생성해 두세요.
-                    백업 파일은 데이터 복구 시 사용할 수 있습니다.
+                    <strong>권장:</strong> 중요한 변경 작업 전에 백업을 생성해 두세요.
+                    백업은 압축되어 DB에 저장되며, 필요 시 다운로드할 수 있습니다.
                   </p>
                 </div>
               </div>

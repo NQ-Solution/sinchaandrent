@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
       });
 
       if (result?.error) {
-        setError('이메일 또는 비밀번호가 올바르지 않습니다.');
+        setError('아이디 또는 비밀번호가 올바르지 않습니다.');
       } else {
         router.push('/admin');
         router.refresh();
@@ -50,11 +50,12 @@ export default function AdminLoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               id="email"
-              type="email"
-              label="이메일"
+              type="text"
+              label="아이디"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@sincharent.com"
+              placeholder="아이디를 입력하세요"
+              autoComplete="off"
               required
             />
             <Input

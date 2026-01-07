@@ -280,3 +280,14 @@ enum ColorType {
   EXTERIOR
   INTERIOR
 }
+
+// DB 백업
+model Backup {
+  id          String   @id @default(cuid())
+  name        String   // 백업 이름 (예: "2024-01-07 수동 백업")
+  description String?  // 백업 설명
+  data        String   // 압축된 백업 데이터 (JSON)
+  size        Int      // 데이터 크기 (bytes)
+  createdAt   DateTime @default(now())
+  createdBy   String?  // 백업 생성자 (관리자 이메일)
+}
