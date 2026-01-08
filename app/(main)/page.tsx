@@ -10,6 +10,8 @@ import prisma from '@/lib/prisma';
 import { localDb, DB_MODE, VehicleWithBrand } from '@/lib/db';
 import PartnerSection from '@/components/PartnerSection';
 import BannerSlider from '@/components/BannerSlider';
+import fs from 'fs';
+import path from 'path';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,32 +54,32 @@ interface CompanyInfo {
   kakaoChannelUrl?: string;
 }
 
+function readCompanyInfoJson(): Record<string, string> {
+  try {
+    const filePath = path.join(process.cwd(), 'data', 'company-info.json');
+    const data = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(data);
+  } catch {
+    return {};
+  }
+}
+
 async function getCompanyInfo(): Promise<CompanyInfo> {
   try {
     if (DB_MODE === 'local') {
-      const settings = localDb.settings.findMany();
-      const result: CompanyInfo = {};
-      settings.forEach((s: { key: string; value: string }) => {
-        if (s.key === 'phone') result.phone = s.value;
-        if (s.key === 'kakaoChannelUrl') result.kakaoChannelUrl = s.value;
-      });
-      return result;
+      return readCompanyInfoJson();
     }
 
-    const settings = await prisma.setting.findMany({
-      where: {
-        key: { in: ['phone', 'kakaoChannelUrl'] }
-      }
-    });
+    const companyInfo = await prisma.companyInfo.findMany();
     const result: CompanyInfo = {};
-    settings.forEach((s) => {
-      if (s.key === 'phone') result.phone = s.value;
-      if (s.key === 'kakaoChannelUrl') result.kakaoChannelUrl = s.value;
+    companyInfo.forEach((info) => {
+      if (info.key === 'phone') result.phone = info.value;
+      if (info.key === 'kakaoChannelUrl') result.kakaoChannelUrl = info.value;
     });
     return result;
   } catch (error) {
     console.error('Failed to fetch company info:', error);
-    return {};
+    return readCompanyInfoJson();
   }
 }
 
@@ -318,8 +320,14 @@ export default async function HomePage() {
                           {vehicle.name}
                         </h3>
                         <p className="text-lg font-black text-gray-900">
-                          {(vehicle.rentPrice60_0 || (vehicle as unknown as { rentPrice60?: number }).rentPrice60)?.toLocaleString() || '상담'}
-                          <span className="text-sm font-normal text-gray-500">원~</span>
+                          {(vehicle.rentPrice60_0 || (vehicle as unknown as { rentPrice60?: number }).rentPrice60) ? (
+                            <>
+                              {(vehicle.rentPrice60_0 || (vehicle as unknown as { rentPrice60?: number }).rentPrice60)?.toLocaleString()}
+                              <span className="text-sm font-normal text-gray-500">원~</span>
+                            </>
+                          ) : (
+                            <span className="text-sm font-semibold text-primary">상담문의</span>
+                          )}
                         </p>
                       </div>
 

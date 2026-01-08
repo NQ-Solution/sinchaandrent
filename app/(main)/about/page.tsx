@@ -1,45 +1,83 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { Target, Eye, Heart, Shield, Clock, Award, Phone, Car, TrendingUp, CheckCircle, ArrowRight, Users, Wallet, FileCheck, Wrench, BadgeCheck, Handshake, Check } from 'lucide-react';
+import { Target, Eye, Heart, Shield, Clock, Award, Phone, Car, TrendingUp, CheckCircle, ArrowRight, Users, Wallet, FileCheck, Wrench, BadgeCheck, Handshake, Check, Building2, Download } from 'lucide-react';
 import { KakaoIcon } from '@/components/icons/KakaoIcon';
 import PartnerSectionByCategory from '@/components/PartnerSectionByCategory';
 import FAQSection from '@/components/FAQSection';
 import prisma from '@/lib/prisma';
-import { localDb, DB_MODE } from '@/lib/db';
+import { DB_MODE } from '@/lib/db';
+import fs from 'fs';
+import path from 'path';
 
 export const dynamic = 'force-dynamic';
 
+interface LoanBrokerDocument {
+  name: string;
+  file: string;
+}
+
 interface CompanyInfo {
+  companyName?: string;
+  ceoName?: string;
+  businessNumber?: string;
+  loanBrokerNumber?: string;
+  address?: string;
   phone?: string;
+  email?: string;
+  faxNumber?: string;
+  privacyOfficer?: string;
+  loanBrokerPdf?: string;
+  loanBrokerDocuments?: string;
+  loanBrokerImage?: string;
   kakaoChannelUrl?: string;
+  youtubeUrl?: string;
+}
+
+function parseLoanBrokerDocuments(companyInfo: CompanyInfo): LoanBrokerDocument[] {
+  let documents: LoanBrokerDocument[] = [];
+
+  if (companyInfo.loanBrokerDocuments) {
+    try {
+      documents = JSON.parse(companyInfo.loanBrokerDocuments);
+    } catch {
+      documents = [];
+    }
+  }
+
+  // 기존 loanBrokerPdf가 있고 documents가 비어있으면 마이그레이션
+  if (companyInfo.loanBrokerPdf && documents.length === 0) {
+    documents = [{ name: '대출모집법인 등록증', file: companyInfo.loanBrokerPdf }];
+  }
+
+  return documents;
+}
+
+function readCompanyInfoJson(): Record<string, string> {
+  try {
+    const filePath = path.join(process.cwd(), 'data', 'company-info.json');
+    const data = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(data);
+  } catch {
+    return {};
+  }
 }
 
 async function getCompanyInfo(): Promise<CompanyInfo> {
   try {
     if (DB_MODE === 'local') {
-      const settings = localDb.settings.findMany();
-      const result: CompanyInfo = {};
-      settings.forEach((s: { key: string; value: string }) => {
-        if (s.key === 'phone') result.phone = s.value;
-        if (s.key === 'kakaoChannelUrl') result.kakaoChannelUrl = s.value;
-      });
-      return result;
+      return readCompanyInfoJson();
     }
 
-    const settings = await prisma.setting.findMany({
-      where: {
-        key: { in: ['phone', 'kakaoChannelUrl'] }
-      }
-    });
+    const companyInfo = await prisma.companyInfo.findMany();
     const result: CompanyInfo = {};
-    settings.forEach((s) => {
-      if (s.key === 'phone') result.phone = s.value;
-      if (s.key === 'kakaoChannelUrl') result.kakaoChannelUrl = s.value;
+    companyInfo.forEach((info) => {
+      (result as Record<string, string>)[info.key] = info.value;
     });
     return result;
   } catch (error) {
     console.error('Failed to fetch company info:', error);
-    return {};
+    // fallback to local
+    return readCompanyInfoJson();
   }
 }
 
@@ -425,6 +463,120 @@ export default async function AboutPage() {
           </div>
         </div>
       </section>
+
+      {/* 대출모집법인 정보 섹션 */}
+      {companyInfo.loanBrokerNumber && (() => {
+        const documents = parseLoanBrokerDocuments(companyInfo);
+        return (
+          <section className="py-20 md:py-28 bg-white">
+            <div className="container mx-auto px-4">
+              <div className="text-center mb-16">
+                <span className="text-primary font-bold text-sm tracking-wider">CERTIFICATION</span>
+                <h2 className="text-3xl md:text-4xl font-black text-gray-900 mt-2">
+                  대출모집법인 등록 정보
+                </h2>
+                <p className="text-gray-500 mt-4 max-w-2xl mx-auto">
+                  신차앤렌트는 여신금융협회에 정식 등록된 대출모집법인입니다.
+                  <br />
+                  안전하고 투명한 금융 서비스를 제공합니다.
+                </p>
+              </div>
+
+              <div className="max-w-5xl mx-auto">
+                {/* 회사 정보 카드 */}
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl p-8 md:p-12 mb-8">
+                  <div className="flex flex-col md:flex-row md:items-center gap-6 mb-8">
+                    <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <Building2 className="w-10 h-10 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900">{companyInfo.companyName || '신차앤렌트'}</h3>
+                      <p className="text-gray-500 text-lg">정식 등록 대출모집법인</p>
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-white rounded-xl p-5 shadow-sm">
+                      <p className="text-gray-500 text-sm mb-1">여신금융협회 등록번호</p>
+                      <p className="text-primary font-bold text-lg">{companyInfo.loanBrokerNumber}</p>
+                    </div>
+                    {companyInfo.businessNumber && (
+                      <div className="bg-white rounded-xl p-5 shadow-sm">
+                        <p className="text-gray-500 text-sm mb-1">사업자등록번호</p>
+                        <p className="text-gray-900 font-semibold">{companyInfo.businessNumber}</p>
+                      </div>
+                    )}
+                    {companyInfo.ceoName && (
+                      <div className="bg-white rounded-xl p-5 shadow-sm">
+                        <p className="text-gray-500 text-sm mb-1">대표자</p>
+                        <p className="text-gray-900 font-semibold">{companyInfo.ceoName}</p>
+                      </div>
+                    )}
+                    {companyInfo.address && (
+                      <div className="bg-white rounded-xl p-5 shadow-sm sm:col-span-2 lg:col-span-1">
+                        <p className="text-gray-500 text-sm mb-1">소재지</p>
+                        <p className="text-gray-900 font-semibold text-sm">{companyInfo.address}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 등록증 문서 목록 */}
+                {documents.length > 0 && (
+                  <div className="mb-8">
+                    <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-primary" />
+                      등록 서류
+                    </h4>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {documents.map((doc, index) => (
+                        <div key={index} className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-shadow">
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                              <Download className="w-6 h-6 text-blue-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h5 className="font-semibold text-gray-900 mb-3 truncate">{doc.name || `등록증 ${index + 1}`}</h5>
+                              <div className="flex flex-wrap gap-2">
+                                <Button asChild size="sm" variant="outline" className="rounded-full text-sm">
+                                  <a href={doc.file} target="_blank" rel="noopener noreferrer">
+                                    <Eye className="w-4 h-4 mr-1.5" />
+                                    새창에서 보기
+                                  </a>
+                                </Button>
+                                <Button asChild size="sm" className="rounded-full text-sm bg-primary hover:bg-primary-600">
+                                  <a href={doc.file} download={`${doc.name || '등록증'}.pdf`}>
+                                    <Download className="w-4 h-4 mr-1.5" />
+                                    다운로드
+                                  </a>
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 안내 문구 */}
+                <div className="p-6 bg-primary/5 rounded-2xl border border-primary/20">
+                  <div className="flex items-start gap-4">
+                    <Shield className="w-6 h-6 text-primary flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-2">안전한 금융 서비스</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        신차앤렌트는 여신금융협회에 정식 등록된 대출모집법인으로서, 금융소비자 보호에 관한 법률을 준수하며
+                        투명하고 공정한 금융 서비스를 제공합니다. 고객님의 개인정보는 철저히 보호됩니다.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* FAQ Section */}
       <FAQSection />
