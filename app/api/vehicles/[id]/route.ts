@@ -117,7 +117,7 @@ export async function GET(
           name: to.vehicleOption.masterOption.name,
           description: to.vehicleOption.masterOption.description,
           category: to.vehicleOption.masterOption.category,
-          price: to.vehicleOption.price,
+          price: to.price ?? to.vehicleOption.price,  // 트림별 개별 가격 우선, 없으면 기본 가격
           sortOrder: to.vehicleOption.sortOrder,
           trimOptionId: to.id,
           isIncluded: to.isIncluded,
