@@ -20,7 +20,7 @@ interface TrimData {
   sortOrder: number;
   isNew?: boolean;
   colorIds?: string[];
-  optionSettings?: { optionId: string; isIncluded: boolean }[];
+  optionSettings?: { optionId: string; isIncluded: boolean; price?: number | null }[];
 }
 
 interface ColorData {
@@ -229,9 +229,10 @@ export default function EditVehiclePage() {
                   tc.vehicleColorId || tc.color?.id || tc.colorId || ''
                 ),
                 // vehicleOptionId는 VehicleOption.id이며 option.id와 동일
-                optionSettings: trimOptions.map((to: { vehicleOptionId?: string; optionId?: string; option?: { id: string }; isIncluded: boolean }) => ({
+                optionSettings: trimOptions.map((to: { vehicleOptionId?: string; optionId?: string; option?: { id: string }; isIncluded: boolean; price?: number | null }) => ({
                   optionId: to.vehicleOptionId || to.option?.id || to.optionId || '',
                   isIncluded: to.isIncluded,
+                  price: to.price ?? null,
                 })),
               };
             } catch (error) {
@@ -309,8 +310,8 @@ export default function EditVehiclePage() {
       // 이미 있으면 제거
       updated[trimIndex].optionSettings = currentSettings.filter((_, i) => i !== existingIndex);
     } else {
-      // 없으면 추가
-      updated[trimIndex].optionSettings = [...currentSettings, { optionId, isIncluded }];
+      // 없으면 추가 (price는 null로 시작 - 기본 가격 사용)
+      updated[trimIndex].optionSettings = [...currentSettings, { optionId, isIncluded, price: null }];
     }
     setTrims(updated);
   };
@@ -322,6 +323,18 @@ export default function EditVehiclePage() {
 
     if (settingIndex >= 0) {
       currentSettings[settingIndex].isIncluded = isIncluded;
+      updated[trimIndex].optionSettings = currentSettings;
+      setTrims(updated);
+    }
+  };
+
+  const updateTrimOptionPrice = (trimIndex: number, optionId: string, price: number | null) => {
+    const updated = [...trims];
+    const currentSettings = updated[trimIndex].optionSettings || [];
+    const settingIndex = currentSettings.findIndex(s => s.optionId === optionId);
+
+    if (settingIndex >= 0) {
+      currentSettings[settingIndex].price = price;
       updated[trimIndex].optionSettings = currentSettings;
       setTrims(updated);
     }
@@ -802,6 +815,7 @@ export default function EditVehiclePage() {
               options: trim.optionSettings.map(s => ({
                 optionId: s.optionId,
                 isIncluded: s.isIncluded,
+                price: s.price, // 트림별 개별 가격
               })),
             }),
           });
@@ -1447,6 +1461,8 @@ export default function EditVehiclePage() {
                           const isSelected = !!setting;
                           const isIncluded = setting?.isIncluded || false;
 
+                          const trimPrice = setting?.price;
+
                           return (
                             <div
                               key={option.id}
@@ -1465,7 +1481,7 @@ export default function EditVehiclePage() {
                                 />
                                 <div className="flex-1">
                                   <p className="font-medium">{option.name}</p>
-                                  <p className="text-sm text-gray-500">+{option.price.toLocaleString()}원</p>
+                                  <p className="text-sm text-gray-500">기본 가격: +{option.price.toLocaleString()}원</p>
                                 </div>
                                 {isSelected && (
                                   <label className="flex items-center gap-2 cursor-pointer">
@@ -1479,6 +1495,40 @@ export default function EditVehiclePage() {
                                   </label>
                                 )}
                               </div>
+                              {isSelected && (
+                                <div className="mt-3 pt-3 border-t border-gray-200">
+                                  <div className="flex items-center gap-3">
+                                    <label className="text-sm text-gray-600 whitespace-nowrap">트림별 가격:</label>
+                                    <input
+                                      type="number"
+                                      value={trimPrice ?? ''}
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        updateTrimOptionPrice(
+                                          selectedTrimIndex,
+                                          option.id || '',
+                                          value === '' ? null : parseInt(value, 10)
+                                        );
+                                      }}
+                                      placeholder={`기본값 ${option.price.toLocaleString()}원`}
+                                      className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                                    />
+                                    <span className="text-sm text-gray-500">원</span>
+                                    {trimPrice !== null && trimPrice !== undefined && (
+                                      <button
+                                        type="button"
+                                        onClick={() => updateTrimOptionPrice(selectedTrimIndex, option.id || '', null)}
+                                        className="text-xs text-gray-500 hover:text-gray-700 underline"
+                                      >
+                                        기본값 사용
+                                      </button>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-gray-400 mt-1">
+                                    비워두면 기본 가격({option.price.toLocaleString()}원)이 적용됩니다.
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           );
                         })}

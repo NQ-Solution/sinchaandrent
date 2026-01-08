@@ -159,6 +159,7 @@ model TrimOption {
   trimId          String
   isIncluded      Boolean       @default(false)
   vehicleOptionId String
+  price           Int?          // 트림별 개별 가격 (null이면 VehicleOption.price 사용)
   trim            Trim          @relation(fields: [trimId], references: [id], onDelete: Cascade)
   vehicleOption   VehicleOption @relation(fields: [vehicleOptionId], references: [id], onDelete: Cascade)
 

@@ -35,12 +35,13 @@ export async function GET(
       trimId: to.trimId,
       vehicleOptionId: to.vehicleOptionId,
       isIncluded: to.isIncluded,
+      price: to.price, // 트림별 개별 가격
       option: {
         id: to.vehicleOption.id,
         name: to.vehicleOption.masterOption.name,
         description: to.vehicleOption.masterOption.description,
         category: to.vehicleOption.masterOption.category,
-        price: to.vehicleOption.price,
+        price: to.vehicleOption.price, // 기본 가격
         sortOrder: to.vehicleOption.sortOrder,
       },
     }));
@@ -74,10 +75,11 @@ export async function POST(
     // 새로운 연결 생성 (options 배열에서 optionId는 이제 VehicleOption.id)
     if (options && options.length > 0) {
       await prisma.trimOption.createMany({
-        data: options.map((opt: { optionId: string; isIncluded: boolean }) => ({
+        data: options.map((opt: { optionId: string; isIncluded: boolean; price?: number | null }) => ({
           trimId,
           vehicleOptionId: opt.optionId,
           isIncluded: opt.isIncluded ?? false,
+          price: opt.price ?? null, // 트림별 개별 가격
         })),
       });
     }

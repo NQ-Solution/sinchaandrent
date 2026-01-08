@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Phone, MessageCircle, Youtube, FileText, Building2, Download } from 'lucide-react';
+import { Phone, MessageCircle, Youtube, FileText, Building2, ExternalLink } from 'lucide-react';
 
 interface LoanBrokerDocument {
   name: string;
@@ -68,15 +68,6 @@ export function Footer() {
     }
     fetchCompanyInfo();
   }, []);
-
-  const handleDocumentDownload = (doc: LoanBrokerDocument) => {
-    const link = document.createElement('a');
-    link.href = doc.file;
-    link.download = `${doc.name || '등록증'}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   return (
     <footer className="bg-gray-900 text-gray-300">
@@ -249,11 +240,30 @@ export function Footer() {
                       doc.file && (
                         <button
                           key={index}
-                          onClick={() => handleDocumentDownload(doc)}
-                          className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 hover:text-white rounded-md transition-colors font-medium text-[11px] sm:text-sm"
+                          onClick={() => {
+                            try {
+                              if (doc.file.startsWith('data:application/pdf;base64,') || doc.file.startsWith('data:')) {
+                                const base64Content = doc.file.includes(',') ? doc.file.split(',')[1] : doc.file;
+                                const byteCharacters = atob(base64Content);
+                                const byteNumbers = new Array(byteCharacters.length);
+                                for (let i = 0; i < byteCharacters.length; i++) {
+                                  byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                }
+                                const byteArray = new Uint8Array(byteNumbers);
+                                const blob = new Blob([byteArray], { type: 'application/pdf' });
+                                const blobUrl = URL.createObjectURL(blob);
+                                window.open(blobUrl, '_blank');
+                              } else {
+                                window.open(doc.file, '_blank');
+                              }
+                            } catch (error) {
+                              console.error('PDF 열기 오류:', error);
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 hover:text-white rounded-md transition-colors font-medium text-[11px] sm:text-sm cursor-pointer"
                         >
-                          <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                          <span className="break-keep">{doc.name || `등록증 ${index + 1}`} 다운로드</span>
+                          <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span className="break-keep">{doc.name || `등록증 ${index + 1}`} 보기</span>
                         </button>
                       )
                     ))}

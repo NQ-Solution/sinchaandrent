@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { Target, Eye, Heart, Shield, Clock, Award, Phone, Car, TrendingUp, CheckCircle, ArrowRight, Users, Wallet, FileCheck, Wrench, BadgeCheck, Handshake, Check, Building2, Download } from 'lucide-react';
+import { Target, Eye, Heart, Shield, Clock, Award, Phone, Car, TrendingUp, CheckCircle, ArrowRight, Users, Wallet, FileCheck, Wrench, BadgeCheck, Handshake, Check, Building2 } from 'lucide-react';
 import { KakaoIcon } from '@/components/icons/KakaoIcon';
 import PartnerSectionByCategory from '@/components/PartnerSectionByCategory';
 import FAQSection from '@/components/FAQSection';
+import { PdfViewer } from '@/components/PdfViewer';
 import prisma from '@/lib/prisma';
 import { DB_MODE } from '@/lib/db';
 import fs from 'fs';
@@ -530,30 +531,12 @@ export default async function AboutPage() {
                     </h4>
                     <div className="grid sm:grid-cols-2 gap-4">
                       {documents.map((doc, index) => (
-                        <div key={index} className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-shadow">
-                          <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                              <Download className="w-6 h-6 text-blue-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h5 className="font-semibold text-gray-900 mb-3 truncate">{doc.name || `등록증 ${index + 1}`}</h5>
-                              <div className="flex flex-wrap gap-2">
-                                <Button asChild size="sm" variant="outline" className="rounded-full text-sm">
-                                  <a href={doc.file} target="_blank" rel="noopener noreferrer">
-                                    <Eye className="w-4 h-4 mr-1.5" />
-                                    새창에서 보기
-                                  </a>
-                                </Button>
-                                <Button asChild size="sm" className="rounded-full text-sm bg-primary hover:bg-primary-600">
-                                  <a href={doc.file} download={`${doc.name || '등록증'}.pdf`}>
-                                    <Download className="w-4 h-4 mr-1.5" />
-                                    다운로드
-                                  </a>
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                        <PdfViewer
+                          key={index}
+                          name={doc.name}
+                          file={doc.file}
+                          index={index}
+                        />
                       ))}
                     </div>
                   </div>
