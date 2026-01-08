@@ -263,7 +263,7 @@ export default async function AboutPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { item: '초기비용', rent: '0원', buy: '500~1,000만원', lease: '보증금 필요', rentBest: true },
+                    { item: '초기비용', rent: '0원', buy: '500~1,000만원', lease: '선납금 필요', rentBest: true },
                     { item: '보험료', rent: '월 렌트료 포함', buy: '별도 납부 (연 100~200만원)', lease: '별도 납부', rentBest: true },
                     { item: '자동차세', rent: '월 렌트료 포함', buy: '별도 납부 (연 30~80만원)', lease: '월 납입금 포함', rentBest: true },
                     { item: '정비/소모품', rent: '월 렌트료 포함', buy: '별도 부담', lease: '별도 부담', rentBest: true },
@@ -293,7 +293,7 @@ export default async function AboutPage() {
             {/* 모바일 비교 카드 */}
             <div className="md:hidden space-y-4">
               {[
-                { item: '초기비용', rent: '0원', buy: '500~1,000만원', lease: '보증금 필요', rentBest: true },
+                { item: '초기비용', rent: '0원', buy: '500~1,000만원', lease: '선납금 필요', rentBest: true },
                 { item: '보험료', rent: '포함', buy: '별도 (연 100~200만원)', lease: '별도', rentBest: true },
                 { item: '자동차세', rent: '포함', buy: '별도 (연 30~80만원)', lease: '포함', rentBest: true },
                 { item: '정비/소모품', rent: '포함', buy: '별도', lease: '별도', rentBest: true },

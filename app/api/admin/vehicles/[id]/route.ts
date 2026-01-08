@@ -138,17 +138,17 @@ export async function PUT(
           seatingCapacityMin: data.seatingCapacityMin,
           seatingCapacityMax: data.seatingCapacityMax,
           basePrice: data.basePrice,
-          // 보증금 0%
+          // 선납금 0%
           rentPrice60_0: data.rentPrice60_0,
           rentPrice48_0: data.rentPrice48_0,
           rentPrice36_0: data.rentPrice36_0,
           rentPrice24_0: data.rentPrice24_0,
-          // 보증금 30%
+          // 선납금 30%
           rentPrice60_30: data.rentPrice60_30,
           rentPrice48_30: data.rentPrice48_30,
           rentPrice36_30: data.rentPrice36_30,
           rentPrice24_30: data.rentPrice24_30,
-          // 보증금 40%
+          // 선납금 40%
           rentPrice60_40: data.rentPrice60_40,
           rentPrice48_40: data.rentPrice48_40,
           rentPrice36_40: data.rentPrice36_40,
@@ -179,17 +179,17 @@ export async function PUT(
         seatingCapacityMin: data.seatingCapacityMin,
         seatingCapacityMax: data.seatingCapacityMax,
         basePrice: data.basePrice,
-        // 보증금 0%
+        // 선납금 0%
         rentPrice60_0: data.rentPrice60_0,
         rentPrice48_0: data.rentPrice48_0,
         rentPrice36_0: data.rentPrice36_0,
         rentPrice24_0: data.rentPrice24_0,
-        // 보증금 30%
+        // 선납금 30%
         rentPrice60_30: data.rentPrice60_30,
         rentPrice48_30: data.rentPrice48_30,
         rentPrice36_30: data.rentPrice36_30,
         rentPrice24_30: data.rentPrice24_30,
-        // 보증금 40%
+        // 선납금 40%
         rentPrice60_40: data.rentPrice60_40,
         rentPrice48_40: data.rentPrice48_40,
         rentPrice36_40: data.rentPrice36_40,

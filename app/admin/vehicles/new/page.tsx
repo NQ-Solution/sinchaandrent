@@ -80,17 +80,17 @@ export default function NewVehiclePage() {
     imageSizePreset: 'vehicle',
     imagePadding: 0,
     basePrice: '',
-    // 보증금 0%
+    // 선납금 0%
     rentPrice60_0: '',
     rentPrice48_0: '',
     rentPrice36_0: '',
     rentPrice24_0: '',
-    // 보증금 30%
+    // 선납금 30%
     rentPrice60_30: '',
     rentPrice48_30: '',
     rentPrice36_30: '',
     rentPrice24_30: '',
-    // 보증금 40%
+    // 선납금 40%
     rentPrice60_40: '',
     rentPrice48_40: '',
     rentPrice36_40: '',
@@ -197,17 +197,17 @@ export default function NewVehiclePage() {
           thumbnail: formData.thumbnail || null,
           images: formData.images.length > 0 ? formData.images : [],
           basePrice: parseInt(formData.basePrice) || 0,
-          // 보증금 0%
+          // 선납금 0%
           rentPrice60_0: formData.rentPrice60_0 ? parseInt(formData.rentPrice60_0) : null,
           rentPrice48_0: formData.rentPrice48_0 ? parseInt(formData.rentPrice48_0) : null,
           rentPrice36_0: formData.rentPrice36_0 ? parseInt(formData.rentPrice36_0) : null,
           rentPrice24_0: formData.rentPrice24_0 ? parseInt(formData.rentPrice24_0) : null,
-          // 보증금 30%
+          // 선납금 30%
           rentPrice60_30: formData.rentPrice60_30 ? parseInt(formData.rentPrice60_30) : null,
           rentPrice48_30: formData.rentPrice48_30 ? parseInt(formData.rentPrice48_30) : null,
           rentPrice36_30: formData.rentPrice36_30 ? parseInt(formData.rentPrice36_30) : null,
           rentPrice24_30: formData.rentPrice24_30 ? parseInt(formData.rentPrice24_30) : null,
-          // 보증금 40%
+          // 선납금 40%
           rentPrice60_40: formData.rentPrice60_40 ? parseInt(formData.rentPrice60_40) : null,
           rentPrice48_40: formData.rentPrice48_40 ? parseInt(formData.rentPrice48_40) : null,
           rentPrice36_40: formData.rentPrice36_40 ? parseInt(formData.rentPrice36_40) : null,
@@ -497,16 +497,16 @@ export default function NewVehiclePage() {
               </CardContent>
             </Card>
 
-            {/* 보증금별 렌트 가격 */}
+            {/* 선납금별 렌트 가격 */}
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>보증금 비율별 렌트 가격 (월 납입금)</CardTitle>
+                <CardTitle>선납금 비율별 렌트 가격 (월 납입금)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {/* 보증금 0% */}
+                  {/* 선납금 0% */}
                   <div className="p-4 bg-blue-50 rounded-lg">
-                    <h4 className="font-medium text-blue-800 mb-3">보증금 0%</h4>
+                    <h4 className="font-medium text-blue-800 mb-3">선납금 0%</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <PriceInput
                         label="60개월"
@@ -535,9 +535,9 @@ export default function NewVehiclePage() {
                     </div>
                   </div>
 
-                  {/* 보증금 30% */}
+                  {/* 선납금 30% */}
                   <div className="p-4 bg-green-50 rounded-lg">
-                    <h4 className="font-medium text-green-800 mb-3">보증금 30%</h4>
+                    <h4 className="font-medium text-green-800 mb-3">선납금 30%</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <PriceInput
                         label="60개월"
@@ -566,9 +566,9 @@ export default function NewVehiclePage() {
                     </div>
                   </div>
 
-                  {/* 보증금 40% */}
+                  {/* 선납금 40% */}
                   <div className="p-4 bg-yellow-50 rounded-lg">
-                    <h4 className="font-medium text-yellow-800 mb-3">보증금 40%</h4>
+                    <h4 className="font-medium text-yellow-800 mb-3">선납금 40%</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <PriceInput
                         label="60개월"
@@ -598,7 +598,7 @@ export default function NewVehiclePage() {
                   </div>
 
                   <p className="text-sm text-gray-500 text-center">
-                    * 미입력 시 해당 옵션은 &quot;상담 문의&quot;로 표시됩니다. 세부 보증금 비율 조정은 상담을 통해 안내됩니다.
+                    * 미입력 시 해당 옵션은 &quot;상담 문의&quot;로 표시됩니다. 세부 선납금 비율 조정은 상담을 통해 안내됩니다.
                   </p>
                 </div>
               </CardContent>

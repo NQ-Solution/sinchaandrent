@@ -284,8 +284,8 @@ export default function VehicleDetailPage() {
 ■ 계약 조건
 - 이용 형태: 장기렌트
 - 계약 기간: ${period}개월
-- 보증금 비율: ${depositRatio}%
-- 보증금: ${formatPrice(depositAmount)}원
+- 선납금 비율: ${depositRatio}%
+- 선납금: ${formatPrice(depositAmount)}원
 
 ━━━━━━━━━━━━━━━━━━━━━━
 월 납입금: ${formatPrice(getMonthlyPaymentFromDB!)}원~ (최소 기준)
@@ -478,7 +478,7 @@ export default function VehicleDetailPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-gray-400">
-                      {hasAdditionalCost ? '추가 옵션 선택됨' : `${period}개월 / 보증금 ${depositRatio}% 기준`}
+                      {hasAdditionalCost ? '추가 옵션 선택됨' : `${period}개월 / 선납금 ${depositRatio}% 기준`}
                     </p>
                   </div>
                 </div>
@@ -753,7 +753,7 @@ export default function VehicleDetailPage() {
                 <div>
                   <label className="block font-medium mb-3 text-sm flex items-center gap-2">
                     <Percent className="w-4 h-4 text-gray-400" />
-                    보증금 비율
+                    선납금 비율
                   </label>
                   <div className="grid grid-cols-3 gap-3">
                     {DEPOSIT_RATIOS.map((d) => {
@@ -861,7 +861,7 @@ export default function VehicleDetailPage() {
                   <div className="text-sm opacity-90 mb-1">월 납입금</div>
                   <div className="text-3xl font-black mb-1">{formatPrice(getMonthlyPaymentFromDB!)}원~</div>
                   <div className="text-xs opacity-80">
-                    {period}개월 / 보증금 {depositRatio}% ({formatPrice(depositAmount)}원)
+                    {period}개월 / 선납금 {depositRatio}% ({formatPrice(depositAmount)}원)
                   </div>
                 </div>
               ) : (
@@ -934,7 +934,7 @@ export default function VehicleDetailPage() {
                 </div>
                 <div className="text-left">
                   <p className="text-xs text-gray-500">
-                    {hasAdditionalCost ? '맞춤 견적' : `${period}개월 · 보증금 ${depositRatio}%`}
+                    {hasAdditionalCost ? '맞춤 견적' : `${period}개월 · 선납금 ${depositRatio}%`}
                   </p>
                   <p className={`text-lg font-black ${hasAdditionalCost ? 'text-orange-500' : 'text-gray-900'}`}>
                     {hasMonthlyPayment && !hasAdditionalCost ? (
@@ -1024,7 +1024,7 @@ export default function VehicleDetailPage() {
                   <div className="text-sm opacity-90 mb-1">월 납입금</div>
                   <div className="text-2xl font-bold">{formatPrice(getMonthlyPaymentFromDB!)}원~</div>
                   <div className="text-xs opacity-80 mt-1">
-                    {period}개월 / 보증금 {depositRatio}% 기준
+                    {period}개월 / 선납금 {depositRatio}% 기준
                   </div>
                 </div>
               ) : (

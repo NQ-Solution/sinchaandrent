@@ -27,17 +27,17 @@ export interface Vehicle {
   seatingCapacityMin?: number | null;  // 최소 승차 인원
   seatingCapacityMax?: number | null;  // 최대 승차 인원
   basePrice: number;
-  // 보증금 0% 렌트 가격
+  // 선납금 0% 렌트 가격
   rentPrice60_0?: number | null;
   rentPrice48_0?: number | null;
   rentPrice36_0?: number | null;
   rentPrice24_0?: number | null;
-  // 보증금 30% 렌트 가격
+  // 선납금 30% 렌트 가격
   rentPrice60_30?: number | null;
   rentPrice48_30?: number | null;
   rentPrice36_30?: number | null;
   rentPrice24_30?: number | null;
-  // 보증금 40% 렌트 가격
+  // 선납금 40% 렌트 가격
   rentPrice60_40?: number | null;
   rentPrice48_40?: number | null;
   rentPrice36_40?: number | null;

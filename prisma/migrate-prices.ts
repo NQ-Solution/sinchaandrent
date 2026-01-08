@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🔄 보증금 비율 변경 마이그레이션 시작 (25%/50% → 30%/40%)...');
+  console.log('🔄 선납금 비율 변경 마이그레이션 시작 (25%/50% → 30%/40%)...');
 
   // 1. 새 컬럼 추가 (30%, 40%)
   console.log('1️⃣ 새 컬럼 추가 중...');
@@ -51,7 +51,7 @@ async function main() {
   `;
   console.log('✅ 기존 컬럼 삭제 완료');
 
-  console.log('🎉 마이그레이션 완료! 보증금 비율이 25%/50%에서 30%/40%로 변경되었습니다.');
+  console.log('🎉 마이그레이션 완료! 선납금 비율이 25%/50%에서 30%/40%로 변경되었습니다.');
 }
 
 main()

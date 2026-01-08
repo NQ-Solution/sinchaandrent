@@ -30,17 +30,17 @@ export const VehicleSchema = z.object({
   seatingCapacityMin: z.number().int().min(1).max(20).nullable().optional(),
   seatingCapacityMax: z.number().int().min(1).max(20).nullable().optional(),
   basePrice: z.number().int().min(0, '가격은 0 이상이어야 합니다'),
-  // 보증금 0%
+  // 선납금 0%
   rentPrice60_0: z.number().int().min(0).nullable().optional(),
   rentPrice48_0: z.number().int().min(0).nullable().optional(),
   rentPrice36_0: z.number().int().min(0).nullable().optional(),
   rentPrice24_0: z.number().int().min(0).nullable().optional(),
-  // 보증금 30%
+  // 선납금 30%
   rentPrice60_30: z.number().int().min(0).nullable().optional(),
   rentPrice48_30: z.number().int().min(0).nullable().optional(),
   rentPrice36_30: z.number().int().min(0).nullable().optional(),
   rentPrice24_30: z.number().int().min(0).nullable().optional(),
-  // 보증금 40%
+  // 선납금 40%
   rentPrice60_40: z.number().int().min(0).nullable().optional(),
   rentPrice48_40: z.number().int().min(0).nullable().optional(),
   rentPrice36_40: z.number().int().min(0).nullable().optional(),
