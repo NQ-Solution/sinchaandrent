@@ -60,7 +60,7 @@ const SORT_OPTIONS = [
 function FilterSection({
   title,
   children,
-  defaultOpen = true
+  defaultOpen = false
 }: {
   title: string;
   children: React.ReactNode;
@@ -785,7 +785,7 @@ function VehiclesContent() {
         <div className="flex gap-8">
           {/* 데스크톱 필터 사이드바 */}
           <aside className="hidden lg:block w-72 flex-shrink-0">
-            <div className="bg-white rounded-2xl shadow-sm border p-6 sticky top-32">
+            <div className="bg-white rounded-2xl shadow-sm border p-6 sticky top-32 max-h-[calc(100vh-160px)] overflow-y-auto scrollbar-thin">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-bold text-lg">필터</h3>
                 {hasActiveFilters && (

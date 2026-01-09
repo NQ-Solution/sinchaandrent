@@ -3,6 +3,7 @@ import { Noto_Sans_KR } from "next/font/google";
 // import Script from "next/script"; // 구글 애널리틱스 활성화 시 주석 해제
 import "./globals.css";
 import { Providers } from "@/lib/providers";
+import { DeploymentChecker } from "@/components/DeploymentChecker";
 
 const notoSansKR = Noto_Sans_KR({
   subsets: ["latin"],
@@ -72,6 +73,7 @@ export default function RootLayout({
       */}
 
       <body className={`${notoSansKR.variable} font-sans antialiased`}>
+        <DeploymentChecker />
         <Providers>{children}</Providers>
       </body>
     </html>
