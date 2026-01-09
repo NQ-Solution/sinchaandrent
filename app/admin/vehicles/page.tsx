@@ -337,7 +337,7 @@ export default function AdminVehiclesPage() {
                         <span className="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">신차</span>
                       )}
                       <span className="text-xs font-medium text-primary ml-auto">
-                        {vehicle.rentPrice60_0 ? `${formatPrice(vehicle.rentPrice60_0)}원` : '-'}
+                        {vehicle.rentPrice60_30 ? `${formatPrice(vehicle.rentPrice60_30)}원` : '-'}
                       </span>
                     </div>
                   </div>
@@ -393,7 +393,7 @@ export default function AdminVehiclesPage() {
                       차종
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      월 납입금 (60개월)
+                      월 납입금 (선납금 30%, 60개월)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       상태
@@ -446,7 +446,7 @@ export default function AdminVehiclesPage() {
                         {getCategoryLabel(vehicle.category)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {vehicle.rentPrice60_0 ? `${formatPrice(vehicle.rentPrice60_0)}원` : '-'}
+                        {vehicle.rentPrice60_30 ? `${formatPrice(vehicle.rentPrice60_30)}원` : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button

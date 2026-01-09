@@ -67,11 +67,11 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           {/* 가격 영역 */}
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-[10px] sm:text-xs text-gray-400 mb-0.5">월 렌트료</p>
+              <p className="text-[10px] sm:text-xs text-gray-400 mb-0.5">월 렌트료 (선납금 30%)</p>
               <p className="text-lg sm:text-xl font-black text-gray-900">
-                {vehicle.rentPrice60_0 ? (
+                {vehicle.rentPrice60_30 ? (
                   <>
-                    {formatPrice(vehicle.rentPrice60_0)}
+                    {formatPrice(vehicle.rentPrice60_30)}
                     <span className="text-xs sm:text-sm font-normal text-gray-400">원~</span>
                   </>
                 ) : (

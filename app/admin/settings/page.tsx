@@ -26,6 +26,7 @@ interface SiteSettings {
   // SNS
   kakaoChannelUrl: string;
   youtubeUrl: string;
+  blogUrl: string;
 
   // 대출모집법인
   loanBrokerNumber: string;
@@ -52,6 +53,7 @@ const defaultSettings: SiteSettings = {
   faxNumber: '',
   kakaoChannelUrl: '',
   youtubeUrl: '',
+  blogUrl: '',
   loanBrokerNumber: '',
   loanBrokerPdf: '',
   loanBrokerDocuments: [],
@@ -550,6 +552,22 @@ export default function AdminSettingsPage() {
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     푸터 및 상담 페이지에 표시됩니다.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    블로그 URL
+                  </label>
+                  <input
+                    type="url"
+                    value={settings.blogUrl}
+                    onChange={(e) => setSettings(prev => ({ ...prev, blogUrl: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="예: https://blog.naver.com/your_blog"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    네이버 블로그, 티스토리 등 블로그 주소를 입력하세요.
                   </p>
                 </div>
               </div>

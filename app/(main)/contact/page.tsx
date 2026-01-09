@@ -6,9 +6,9 @@ import {
   Phone, Clock, MessageSquare, CheckCircle, Car,
   MapPin, FileText, CreditCard,
   ArrowRight, Building2, PhoneCall, Navigation,
-  ClipboardCheck, AlertCircle, Sparkles, Timer, BadgeCheck, Download, Eye
+  ClipboardCheck, AlertCircle, Sparkles, Timer, BadgeCheck, Download, Eye,
+  Youtube, BookOpen
 } from 'lucide-react';
-import { Youtube } from 'lucide-react';
 import { KakaoIcon } from '@/components/icons/KakaoIcon';
 import Image from 'next/image';
 
@@ -26,6 +26,7 @@ interface CompanyInfo {
   loanBrokerImage?: string;
   kakaoChannelUrl?: string;
   youtubeUrl?: string;
+  blogUrl?: string;
 }
 
 // 실시간 상담 가능 여부 확인
@@ -84,8 +85,9 @@ export default function ContactPage() {
   const [showCertificate, setShowCertificate] = useState(false);
 
   const phoneNumber = companyInfo.phone || process.env.NEXT_PUBLIC_PHONE_NUMBER || '1588-0000';
-  const kakaoUrl = companyInfo.kakaoChannelUrl || process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || '#';
-  const youtubeUrl = companyInfo.youtubeUrl || process.env.NEXT_PUBLIC_YOUTUBE_URL || 'https://www.youtube.com';
+  const kakaoUrl = companyInfo.kakaoChannelUrl || process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || '';
+  const youtubeUrl = companyInfo.youtubeUrl || process.env.NEXT_PUBLIC_YOUTUBE_URL || '';
+  const blogUrl = companyInfo.blogUrl || '';
 
   const { status, nextOpenTime } = useConsultationStatus();
   const [selectedConsultType, setSelectedConsultType] = useState<'phone' | 'kakao' | 'visit' | null>(null);
@@ -198,12 +200,14 @@ export default function ContactPage() {
                   지금 전화하기
                 </a>
               </Button>
-              <Button asChild size="lg" className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 rounded-full px-6 sm:px-8 font-bold h-12 sm:h-14 text-sm sm:text-base">
-                <a href={kakaoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
-                  <KakaoIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                  카카오톡 상담
-                </a>
-              </Button>
+              {kakaoUrl && (
+                <Button asChild size="lg" className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 rounded-full px-6 sm:px-8 font-bold h-12 sm:h-14 text-sm sm:text-base">
+                  <a href={kakaoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
+                    <KakaoIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                    카카오톡 상담
+                  </a>
+                </Button>
+              )}
             </div>
 
             {/* 스크롤 안내 */}
@@ -414,24 +418,54 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* 유튜브 채널 안내 */}
-          <div className="mt-12 max-w-2xl mx-auto">
-            <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6">
-              <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Youtube className="w-8 h-8 text-white" />
+          {/* SNS 채널 안내 - 유튜브와 블로그만 */}
+          {(youtubeUrl || blogUrl) && (
+            <div className="mt-12 max-w-3xl mx-auto">
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-bold text-gray-900">다양한 채널에서 만나보세요</h3>
+                <p className="text-gray-500 text-sm mt-1">유튜브, 블로그에서 더 많은 정보를 확인하세요</p>
               </div>
-              <div className="text-center sm:text-left flex-1">
-                <h3 className="font-bold text-gray-900 mb-1">유튜브에서도 만나보세요</h3>
-                <p className="text-gray-600 text-sm">다양한 차량 정보와 렌트 팁을 영상으로 확인하세요</p>
+              <div className="grid md:grid-cols-2 gap-4">
+                {/* 유튜브 채널 */}
+                {youtubeUrl && (
+                  <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-2xl p-5 flex flex-col items-center text-center gap-4">
+                    <div className="w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center">
+                      <Youtube className="w-7 h-7 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">유튜브 채널</h4>
+                      <p className="text-gray-600 text-sm">차량 정보 영상으로 확인</p>
+                    </div>
+                    <Button asChild className="bg-red-600 hover:bg-red-700 rounded-full w-full">
+                      <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
+                        <Youtube className="w-4 h-4" />
+                        채널 방문
+                      </a>
+                    </Button>
+                  </div>
+                )}
+
+                {/* 블로그 */}
+                {blogUrl && (
+                  <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-2xl p-5 flex flex-col items-center text-center gap-4">
+                    <div className="w-14 h-14 bg-green-500 rounded-2xl flex items-center justify-center">
+                      <BookOpen className="w-7 h-7 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">블로그</h4>
+                      <p className="text-gray-600 text-sm">렌트 정보 & 후기</p>
+                    </div>
+                    <Button asChild className="bg-green-500 hover:bg-green-600 rounded-full w-full">
+                      <a href={blogUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
+                        <BookOpen className="w-4 h-4" />
+                        블로그 방문
+                      </a>
+                    </Button>
+                  </div>
+                )}
               </div>
-              <Button asChild className="bg-red-600 hover:bg-red-700 rounded-full flex-shrink-0">
-                <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                  <Youtube className="w-4 h-4" />
-                  채널 방문
-                </a>
-              </Button>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -912,12 +946,14 @@ export default function ContactPage() {
                   {phoneNumber}
                 </a>
               </Button>
-              <Button asChild size="lg" className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 rounded-full px-10 font-bold text-lg h-14">
-                <a href={kakaoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
-                  <KakaoIcon className="w-6 h-6" />
-                  카카오톡 상담
-                </a>
-              </Button>
+              {kakaoUrl && (
+                <Button asChild size="lg" className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 rounded-full px-10 font-bold text-lg h-14">
+                  <a href={kakaoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
+                    <KakaoIcon className="w-6 h-6" />
+                    카카오톡 상담
+                  </a>
+                </Button>
+              )}
             </div>
           </div>
         </div>

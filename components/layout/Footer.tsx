@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Phone, MessageCircle, Youtube, FileText, Building2, ExternalLink } from 'lucide-react';
+import { Phone, Youtube, FileText, Building2, ExternalLink, BookOpen } from 'lucide-react';
+import { KakaoIcon } from '@/components/icons/KakaoIcon';
 
 interface LoanBrokerDocument {
   name: string;
@@ -24,6 +25,7 @@ interface CompanyInfo {
   loanBrokerImage?: string;
   kakaoChannelUrl?: string;
   youtubeUrl?: string;
+  blogUrl?: string;
 }
 
 export function Footer() {
@@ -34,6 +36,7 @@ export function Footer() {
   const phoneNumber = companyInfo.phone || '';
   const kakaoUrl = companyInfo.kakaoChannelUrl || '#';
   const youtubeUrl = companyInfo.youtubeUrl || '#';
+  const blogUrl = companyInfo.blogUrl || '#';
 
   useEffect(() => {
     async function fetchCompanyInfo() {
@@ -91,24 +94,39 @@ export function Footer() {
               >
                 <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
               </a>
-              <a
-                href={kakaoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-yellow-400 hover:text-gray-900 transition-colors"
-                aria-label="카카오톡 상담"
-              >
-                <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-              </a>
-              <a
-                href={youtubeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
-                aria-label="유튜브 채널"
-              >
-                <Youtube className="w-4 h-4 sm:w-5 sm:h-5" />
-              </a>
+              {kakaoUrl && kakaoUrl !== '#' && (
+                <a
+                  href={kakaoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-yellow-400 hover:text-gray-900 transition-colors"
+                  aria-label="카카오톡 상담"
+                >
+                  <KakaoIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                </a>
+              )}
+              {youtubeUrl && youtubeUrl !== '#' && (
+                <a
+                  href={youtubeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                  aria-label="유튜브 채널"
+                >
+                  <Youtube className="w-4 h-4 sm:w-5 sm:h-5" />
+                </a>
+              )}
+              {blogUrl && blogUrl !== '#' && (
+                <a
+                  href={blogUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-green-500 transition-colors"
+                  aria-label="블로그"
+                >
+                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+                </a>
+              )}
             </div>
           </div>
 

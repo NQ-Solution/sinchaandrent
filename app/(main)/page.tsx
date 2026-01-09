@@ -248,11 +248,7 @@ export default async function HomePage() {
       </section>
 
       {/* 배너 슬라이더 */}
-      <section className="py-8 md:py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <BannerSlider />
-        </div>
-      </section>
+      <BannerSlider />
 
 
       {/* 인기 차량 섹션 */}
@@ -320,9 +316,9 @@ export default async function HomePage() {
                           {vehicle.name}
                         </h3>
                         <p className="text-lg font-black text-gray-900">
-                          {(vehicle.rentPrice60_0 || (vehicle as unknown as { rentPrice60?: number }).rentPrice60) ? (
+                          {(vehicle.rentPrice60_30 || (vehicle as unknown as { rentPrice60?: number }).rentPrice60) ? (
                             <>
-                              {(vehicle.rentPrice60_0 || (vehicle as unknown as { rentPrice60?: number }).rentPrice60)?.toLocaleString()}
+                              {(vehicle.rentPrice60_30 || (vehicle as unknown as { rentPrice60?: number }).rentPrice60)?.toLocaleString()}
                               <span className="text-sm font-normal text-gray-500">원~</span>
                             </>
                           ) : (

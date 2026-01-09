@@ -163,11 +163,11 @@ function VehicleListCard({ vehicle, isCompareSelected, onToggleCompare }: {
           {/* 가격 & CTA */}
           <div className="flex items-end justify-between mt-4 pt-4 border-t border-gray-100">
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">월 렌트료 (60개월 기준)</p>
+              <p className="text-xs text-gray-400 mb-0.5">월 렌트료 (선납금 30%)</p>
               <p className="text-2xl font-black text-gray-900">
-                {vehicle.rentPrice60_0 ? (
+                {vehicle.rentPrice60_30 ? (
                   <>
-                    {formatPrice(vehicle.rentPrice60_0)}
+                    {formatPrice(vehicle.rentPrice60_30)}
                     <span className="text-sm font-normal text-gray-400">원~</span>
                   </>
                 ) : (
@@ -329,7 +329,7 @@ function VehiclesContent() {
 
     if (selectedPriceRanges.length > 0) {
       result = result.filter((v) => {
-        const price = v.rentPrice60_0 || 0;
+        const price = v.rentPrice60_30 || 0;
         return selectedPriceRanges.some((rangeValue) => {
           const range = PRICE_RANGES.find((r) => r.value === rangeValue);
           if (!range) return false;
@@ -359,10 +359,10 @@ function VehiclesContent() {
 
     switch (sortBy) {
       case 'price-low':
-        result.sort((a, b) => (a.rentPrice60_0 || 0) - (b.rentPrice60_0 || 0));
+        result.sort((a, b) => (a.rentPrice60_30 || 0) - (b.rentPrice60_30 || 0));
         break;
       case 'price-high':
-        result.sort((a, b) => (b.rentPrice60_0 || 0) - (a.rentPrice60_0 || 0));
+        result.sort((a, b) => (b.rentPrice60_30 || 0) - (a.rentPrice60_30 || 0));
         break;
       case 'popular':
         result.sort((a, b) => (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0));
