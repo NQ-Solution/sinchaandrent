@@ -66,42 +66,34 @@ describe('VehicleCard', () => {
     expect(screen.getByText('SUV')).toBeInTheDocument();
   });
 
-  it('renders fuel type labels', () => {
+  it('renders rent price with 30% deposit', () => {
     render(<VehicleCard vehicle={mockVehicle} />);
-    expect(screen.getByText('가솔린/하이브리드')).toBeInTheDocument();
+    // VehicleCard shows rentPrice60_30 (450,000)
+    expect(screen.getByText('450,000')).toBeInTheDocument();
+    expect(screen.getByText('원~')).toBeInTheDocument();
   });
 
-  it('renders drive type labels', () => {
+  it('renders NEW badge when isNew is true', () => {
     render(<VehicleCard vehicle={mockVehicle} />);
-    expect(screen.getByText('AWD')).toBeInTheDocument();
+    expect(screen.getByText('NEW')).toBeInTheDocument();
   });
 
-  it('renders rent price', () => {
+  it('renders BEST badge when isPopular is true', () => {
     render(<VehicleCard vehicle={mockVehicle} />);
-    expect(screen.getByText(/월 500,000원~/)).toBeInTheDocument();
-  });
-
-  it('renders new badge when isNew is true', () => {
-    render(<VehicleCard vehicle={mockVehicle} />);
-    expect(screen.getByText('신차')).toBeInTheDocument();
-  });
-
-  it('renders popular badge when isPopular is true', () => {
-    render(<VehicleCard vehicle={mockVehicle} />);
-    expect(screen.getByText('인기')).toBeInTheDocument();
+    expect(screen.getByText('BEST')).toBeInTheDocument();
   });
 
   it('does not render badges when isNew and isPopular are false', () => {
     const vehicleWithoutBadges = { ...mockVehicle, isNew: false, isPopular: false };
     render(<VehicleCard vehicle={vehicleWithoutBadges} />);
-    expect(screen.queryByText('신차')).not.toBeInTheDocument();
-    expect(screen.queryByText('인기')).not.toBeInTheDocument();
+    expect(screen.queryByText('NEW')).not.toBeInTheDocument();
+    expect(screen.queryByText('BEST')).not.toBeInTheDocument();
   });
 
-  it('renders detail button with correct link', () => {
+  it('renders link to vehicle detail page', () => {
     render(<VehicleCard vehicle={mockVehicle} />);
-    const detailButton = screen.getByRole('link', { name: '상세보기' });
-    expect(detailButton).toHaveAttribute('href', '/vehicle/test-vehicle-1');
+    const link = screen.getByRole('link');
+    expect(link).toHaveAttribute('href', '/vehicle/test-vehicle-1');
   });
 
   it('renders thumbnail image', () => {
@@ -111,11 +103,18 @@ describe('VehicleCard', () => {
     expect(image).toHaveAttribute('src', '/images/test-car.jpg');
   });
 
-  it('renders placeholder when no thumbnail', () => {
+  it('renders placeholder icon when no thumbnail', () => {
     const vehicleWithoutThumbnail = { ...mockVehicle, thumbnail: null };
     render(<VehicleCard vehicle={vehicleWithoutThumbnail} />);
-    // Should show vehicle name as placeholder text
-    const placeholders = screen.getAllByText('테스트 차량');
-    expect(placeholders.length).toBeGreaterThan(1);
+    // Should show Car icon as placeholder (no image element)
+    expect(screen.queryByAltText('테스트 차량')).not.toBeInTheDocument();
+    // Vehicle name should still be shown once in the content area
+    expect(screen.getByText('테스트 차량')).toBeInTheDocument();
+  });
+
+  it('renders "상담문의" when rentPrice60_30 is not set', () => {
+    const vehicleWithoutPrice = { ...mockVehicle, rentPrice60_30: null };
+    render(<VehicleCard vehicle={vehicleWithoutPrice} />);
+    expect(screen.getByText('상담문의')).toBeInTheDocument();
   });
 });

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Copy, X, Car } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Copy, X, Car, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PriceInput } from '@/components/ui/PriceInput';
@@ -80,6 +80,8 @@ export default function EditVehiclePage() {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'trims' | 'colors' | 'options'>('basic');
   const [selectedTrimIndex, setSelectedTrimIndex] = useState<number | null>(null);
+  const [draggedTrimIndex, setDraggedTrimIndex] = useState<number | null>(null);
+  const [dragOverTrimIndex, setDragOverTrimIndex] = useState<number | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
 
   // Basic info
@@ -242,6 +244,15 @@ export default function EditVehiclePage() {
           })
         );
 
+        // sortOrder가 모두 같으면 인덱스 기반으로 재설정
+        const sortOrders = trimsWithDetails.map((t: TrimData) => t.sortOrder);
+        const allSameSortOrder = sortOrders.every((so: number) => so === sortOrders[0]);
+        if (allSameSortOrder && trimsWithDetails.length > 1) {
+          trimsWithDetails.forEach((t: TrimData, idx: number) => {
+            t.sortOrder = idx;
+          });
+        }
+
         setTrims(trimsWithDetails);
         setExteriorColors(colorsData.filter((c: ColorData) => c.type === 'EXTERIOR'));
         setInteriorColors(colorsData.filter((c: ColorData) => c.type === 'INTERIOR'));
@@ -282,6 +293,58 @@ export default function EditVehiclePage() {
     } else if (selectedTrimIndex === newIndex) {
       setSelectedTrimIndex(index);
     }
+  };
+
+  // 트림 드래그 앤 드롭 핸들러
+  const handleTrimDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedTrimIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleTrimDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedTrimIndex !== null && draggedTrimIndex !== index) {
+      setDragOverTrimIndex(index);
+    }
+  };
+
+  const handleTrimDragEnd = () => {
+    setDraggedTrimIndex(null);
+    setDragOverTrimIndex(null);
+  };
+
+  const handleTrimDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedTrimIndex === null || draggedTrimIndex === targetIndex) {
+      setDraggedTrimIndex(null);
+      setDragOverTrimIndex(null);
+      return;
+    }
+
+    const newTrims = [...trims];
+    const [draggedItem] = newTrims.splice(draggedTrimIndex, 1);
+    newTrims.splice(targetIndex, 0, draggedItem);
+
+    // sortOrder 재정렬
+    newTrims.forEach((trim, idx) => {
+      trim.sortOrder = idx;
+    });
+
+    setTrims(newTrims);
+
+    // selectedTrimIndex 업데이트
+    if (selectedTrimIndex === draggedTrimIndex) {
+      setSelectedTrimIndex(targetIndex);
+    } else if (selectedTrimIndex !== null) {
+      if (draggedTrimIndex < selectedTrimIndex && targetIndex >= selectedTrimIndex) {
+        setSelectedTrimIndex(selectedTrimIndex - 1);
+      } else if (draggedTrimIndex > selectedTrimIndex && targetIndex <= selectedTrimIndex) {
+        setSelectedTrimIndex(selectedTrimIndex + 1);
+      }
+    }
+
+    setDraggedTrimIndex(null);
+    setDragOverTrimIndex(null);
   };
 
   const updateTrim = (index: number, field: keyof TrimData, value: string | number | string[] | { optionId: string; isIncluded: boolean }[]) => {
@@ -779,6 +842,7 @@ export default function EditVehiclePage() {
               name: trim.name,
               price: trim.price,
               description: trim.description,
+              sortOrder: trim.sortOrder,
             }),
           });
           const createdTrim = await res.json();
@@ -793,6 +857,7 @@ export default function EditVehiclePage() {
               name: trim.name,
               price: trim.price,
               description: trim.description,
+              sortOrder: trim.sortOrder,
             }),
           });
         }
@@ -1287,11 +1352,19 @@ export default function EditVehiclePage() {
                           selectedTrimIndex === index
                             ? 'border-primary bg-primary/5'
                             : 'border-gray-200 hover:border-primary/50'
-                        }`}
+                        } ${draggedTrimIndex === index ? 'opacity-50' : ''} ${dragOverTrimIndex === index ? 'border-primary ring-2 ring-primary/30' : ''}`}
                         onClick={() => setSelectedTrimIndex(index)}
+                        draggable
+                        onDragStart={(e) => handleTrimDragStart(e, index)}
+                        onDragOver={(e) => handleTrimDragOver(e, index)}
+                        onDragEnd={handleTrimDragEnd}
+                        onDrop={(e) => handleTrimDrop(e, index)}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
+                            <div className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
+                              <GripVertical className="w-5 h-5" />
+                            </div>
                             <div className="flex flex-col">
                               <Button
                                 type="button"
@@ -1315,7 +1388,10 @@ export default function EditVehiclePage() {
                               </Button>
                             </div>
                             <div>
-                              <p className="font-semibold">{trim.name || '새 트림'}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold">{trim.name || '새 트림'}</p>
+                                {index === 0 && <span className="text-[10px] bg-primary text-white px-1.5 py-0.5 rounded">기본</span>}
+                              </div>
                               <p className="text-sm text-gray-500">
                                 +{trim.price.toLocaleString()}원
                               </p>

@@ -167,9 +167,9 @@ export default async function AboutPage() {
               },
               {
                 icon: Wrench,
-                title: '정비/소모품 포함',
-                description: '엔진오일, 타이어, 브레이크패드 등 소모품 교체 비용이 포함됩니다. 예상치 못한 정비 비용 걱정이 없습니다.',
-                highlight: '연간 50~100만원 절약',
+                title: '정비/소모품 선택 가능',
+                description: '정비비는 기본 미포함이며, 필요 시 선택하여 추가할 수 있습니다. 고객 상황에 맞게 유연하게 선택 가능합니다.',
+                highlight: '선택 추가 가능',
               },
               {
                 icon: Clock,
@@ -305,7 +305,7 @@ export default async function AboutPage() {
                     { item: '초기비용', rent: '0원', buy: '500~1,000만원', lease: '선납금 필요', rentBest: true },
                     { item: '보험료', rent: '월 렌트료 포함', buy: '별도 납부 (연 100~200만원)', lease: '별도 납부', rentBest: true },
                     { item: '자동차세', rent: '월 렌트료 포함', buy: '별도 납부 (연 30~80만원)', lease: '월 납입금 포함', rentBest: true },
-                    { item: '정비/소모품', rent: '월 렌트료 포함', buy: '별도 부담', lease: '별도 부담', rentBest: true },
+                    { item: '정비/소모품', rent: '별도 (선택 가능)', buy: '별도 부담', lease: '별도 부담', rentBest: false },
                     { item: '차량 소유권', rent: '렌트사', buy: '본인', lease: '리스사', rentBest: false },
                     { item: '번호판', rent: '허, 하, 호', buy: '일반 번호판', lease: '일반 번호판', rentBest: false },
                     { item: '사고 시 대응', rent: '렌트사 지원', buy: '본인 직접 처리', lease: '본인 처리', rentBest: true },

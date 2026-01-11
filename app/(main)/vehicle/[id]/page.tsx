@@ -108,6 +108,16 @@ export default function VehicleDetailPage() {
           setAvailableTrims(data.trims);
           setSelectedTrim(data.trims[0]);
         }
+
+        // 사용 가능한 선납금 비율 중 첫 번째를 기본값으로 설정
+        const availableDeposits = DEPOSIT_RATIOS.filter(d => {
+          const fieldName = `rentPrice${period}_${d}` as keyof typeof data;
+          const price = data[fieldName];
+          return typeof price === 'number' && price > 0;
+        });
+        if (availableDeposits.length > 0 && !availableDeposits.includes(0)) {
+          setDepositRatio(availableDeposits[0]);
+        }
       } catch (error) {
         console.error(error);
       } finally {
@@ -124,6 +134,16 @@ export default function VehicleDetailPage() {
   useEffect(() => {
     if (!selectedTrim) return;
 
+    // 무료 색상을 먼저 찾는 헬퍼 함수
+    const findFreeOrLowestPriceColor = (colors: ColorOption[]): ColorOption | null => {
+      if (colors.length === 0) return null;
+      // 무료(price = 0) 색상 먼저 찾기
+      const freeColor = colors.find(c => c.price === 0);
+      if (freeColor) return freeColor;
+      // 무료가 없으면 가장 저렴한 색상 선택
+      return [...colors].sort((a, b) => a.price - b.price)[0];
+    };
+
     // 트림의 availableColors에서 외부/내부 색상 분리
     if (selectedTrim.availableColors && selectedTrim.availableColors.length > 0) {
       const exteriorColors = selectedTrim.availableColors.filter(c => c.type === 'EXTERIOR');
@@ -133,11 +153,12 @@ export default function VehicleDetailPage() {
       setAvailableInteriorColors(interiorColors);
 
       // 기존 선택이 현재 트림에서 사용 가능한지 확인
+      // 사용 불가능하면 무료/최저가 색상 자동 선택
       if (!exteriorColors.find(c => c.id === selectedExterior?.id)) {
-        setSelectedExterior(exteriorColors[0] || null);
+        setSelectedExterior(findFreeOrLowestPriceColor(exteriorColors));
       }
       if (!interiorColors.find(c => c.id === selectedInterior?.id)) {
-        setSelectedInterior(interiorColors[0] || null);
+        setSelectedInterior(findFreeOrLowestPriceColor(interiorColors));
       }
     } else {
       setAvailableExteriorColors([]);
@@ -294,7 +315,7 @@ export default function VehicleDetailPage() {
 ※ 위 금액은 최소 기준 금액입니다.
 ※ 추가 옵션, 보험, 정비 조건 등에 따라 월 납입금이 달라질 수 있습니다.
 ※ 실제 계약 시 신용등급, 금융조건에 따라 월 납입금이 변동될 수 있습니다.
-※ 장기렌트의 경우 보험료, 정비비용, 세금이 포함된 금액입니다.
+※ 정비비는 미포함이며, 선택 시 추가 가능합니다.
 
 상담 문의: ${phoneNumber}
     `.trim();
@@ -789,7 +810,7 @@ export default function VehicleDetailPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
                   { icon: Shield, label: '보험료 포함' },
-                  { icon: Settings2, label: '정비비 포함' },
+                  { icon: Settings2, label: '정비비 별도 (선택 가능)' },
                   { icon: CheckCircle, label: '세금 포함' },
                   { icon: Star, label: '신용영향 無' },
                 ].map((item, i) => (

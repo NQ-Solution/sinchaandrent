@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Plus, Pencil, Trash2, Eye, EyeOff, Search, X, Star, StarOff, Sparkles } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, EyeOff, Search, X, Star, StarOff, Sparkles, GripVertical } from 'lucide-react';
 import { formatPrice, getCategoryLabel } from '@/lib/utils';
 import type { Brand, Vehicle } from '@/types';
 
@@ -15,6 +15,9 @@ export default function AdminVehiclesPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
 
   // Fetch data
   useEffect(() => {
@@ -154,6 +157,88 @@ export default function AdminVehiclesPage() {
       alert('오류가 발생했습니다.');
     }
   };
+
+  // 드래그 앤 드롭 핸들러
+  const handleDragStart = useCallback((e: React.DragEvent, vehicleId: string) => {
+    setDraggedId(vehicleId);
+    e.dataTransfer.effectAllowed = 'move';
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, vehicleId: string) => {
+    e.preventDefault();
+    if (draggedId && draggedId !== vehicleId) {
+      setDragOverId(vehicleId);
+    }
+  }, [draggedId]);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedId(null);
+    setDragOverId(null);
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedId || draggedId === targetId) {
+      setDraggedId(null);
+      setDragOverId(null);
+      return;
+    }
+
+    // 필터링된 차량 목록에서 순서 변경
+    const currentList = [...filteredVehicles];
+    const draggedIndex = currentList.findIndex(v => v.id === draggedId);
+    const targetIndex = currentList.findIndex(v => v.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedId(null);
+      setDragOverId(null);
+      return;
+    }
+
+    // 순서 변경
+    const [draggedItem] = currentList.splice(draggedIndex, 1);
+    currentList.splice(targetIndex, 0, draggedItem);
+
+    // 새 sortOrder 계산
+    const updates = currentList.map((vehicle, index) => ({
+      id: vehicle.id,
+      sortOrder: index,
+    }));
+
+    // UI 즉시 업데이트
+    setVehicles(prev => {
+      const newVehicles = [...prev];
+      updates.forEach(update => {
+        const idx = newVehicles.findIndex(v => v.id === update.id);
+        if (idx !== -1) {
+          newVehicles[idx] = { ...newVehicles[idx], sortOrder: update.sortOrder };
+        }
+      });
+      return newVehicles.sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999));
+    });
+
+    setDraggedId(null);
+    setDragOverId(null);
+
+    // 서버에 순서 저장
+    setIsSavingOrder(true);
+    try {
+      await Promise.all(
+        updates.map(update =>
+          fetch(`/api/admin/vehicles/${update.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sortOrder: update.sortOrder }),
+          })
+        )
+      );
+    } catch (error) {
+      console.error('Failed to save order:', error);
+      alert('순서 저장에 실패했습니다.');
+    } finally {
+      setIsSavingOrder(false);
+    }
+  }, [draggedId, filteredVehicles]);
 
   if (loading) {
     return (
@@ -296,8 +381,19 @@ export default function AdminVehiclesPage() {
           {/* Mobile Card View */}
           <div className="lg:hidden space-y-3">
             {filteredVehicles.map((vehicle) => (
-              <Card key={vehicle.id} className={`p-3 ${!vehicle.isActive ? 'opacity-60' : ''}`}>
+              <Card
+                key={vehicle.id}
+                className={`p-3 ${!vehicle.isActive ? 'opacity-60' : ''} ${draggedId === vehicle.id ? 'opacity-50' : ''} ${dragOverId === vehicle.id ? 'ring-2 ring-primary' : ''}`}
+                draggable
+                onDragStart={(e) => handleDragStart(e, vehicle.id)}
+                onDragOver={(e) => handleDragOver(e, vehicle.id)}
+                onDragEnd={handleDragEnd}
+                onDrop={(e) => handleDrop(e, vehicle.id)}
+              >
                 <div className="flex gap-3">
+                  <div className="flex items-center pr-2 cursor-grab active:cursor-grabbing text-gray-400">
+                    <GripVertical className="w-4 h-4" />
+                  </div>
                   <div className="w-20 h-14 bg-white border border-gray-100 rounded-lg overflow-hidden relative flex-shrink-0">
                     {vehicle.thumbnail ? (
                       <Image
@@ -379,10 +475,19 @@ export default function AdminVehiclesPage() {
 
           {/* Desktop Table View */}
           <Card className="overflow-hidden hidden lg:block">
+            {isSavingOrder && (
+              <div className="bg-primary/10 text-primary text-sm py-2 px-4 flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary"></div>
+                순서 저장 중...
+              </div>
+            )}
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                      순서
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       차량
                     </th>
@@ -405,7 +510,18 @@ export default function AdminVehiclesPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredVehicles.map((vehicle) => (
-                    <tr key={vehicle.id} className={!vehicle.isActive ? 'bg-gray-50 opacity-60' : ''}>
+                    <tr
+                      key={vehicle.id}
+                      className={`${!vehicle.isActive ? 'bg-gray-50 opacity-60' : ''} ${draggedId === vehicle.id ? 'opacity-50 bg-gray-100' : ''} ${dragOverId === vehicle.id ? 'bg-primary/10' : ''} transition-colors`}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, vehicle.id)}
+                      onDragOver={(e) => handleDragOver(e, vehicle.id)}
+                      onDragEnd={handleDragEnd}
+                      onDrop={(e) => handleDrop(e, vehicle.id)}
+                    >
+                      <td className="px-3 py-4 whitespace-nowrap cursor-grab active:cursor-grabbing">
+                        <GripVertical className="w-5 h-5 text-gray-400" />
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-4">
                           <div className="w-16 h-12 bg-white border border-gray-100 rounded-lg overflow-hidden relative flex-shrink-0">

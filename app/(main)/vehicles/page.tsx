@@ -359,10 +359,28 @@ function VehiclesContent() {
 
     switch (sortBy) {
       case 'price-low':
-        result.sort((a, b) => (a.rentPrice60_30 || 0) - (b.rentPrice60_30 || 0));
+        // 가격 있는 차량 우선, 그 다음 낮은 가격순
+        result.sort((a, b) => {
+          const aPrice = a.rentPrice60_30;
+          const bPrice = b.rentPrice60_30;
+          // 가격이 없으면(문의하기) 뒤로
+          if (!aPrice && !bPrice) return 0;
+          if (!aPrice) return 1;
+          if (!bPrice) return -1;
+          return aPrice - bPrice;
+        });
         break;
       case 'price-high':
-        result.sort((a, b) => (b.rentPrice60_30 || 0) - (a.rentPrice60_30 || 0));
+        // 가격 있는 차량 우선, 그 다음 높은 가격순
+        result.sort((a, b) => {
+          const aPrice = a.rentPrice60_30;
+          const bPrice = b.rentPrice60_30;
+          // 가격이 없으면(문의하기) 뒤로
+          if (!aPrice && !bPrice) return 0;
+          if (!aPrice) return 1;
+          if (!bPrice) return -1;
+          return bPrice - aPrice;
+        });
         break;
       case 'popular':
         result.sort((a, b) => (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0));
