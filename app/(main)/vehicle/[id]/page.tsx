@@ -69,7 +69,7 @@ export default function VehicleDetailPage() {
   const [selectedInterior, setSelectedInterior] = useState<ColorOption | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<VehicleOption[]>([]);
   const [period, setPeriod] = useState(60);
-  const [depositRatio, setDepositRatio] = useState(0);
+  const [depositRatio, setDepositRatio] = useState(30);
   const [companyInfo, setCompanyInfo] = useState<{ phone?: string; kakaoUrl?: string; companyName?: string }>({});
   const [isNearFooter, setIsNearFooter] = useState(false);
 
@@ -109,14 +109,19 @@ export default function VehicleDetailPage() {
           setSelectedTrim(data.trims[0]);
         }
 
-        // 사용 가능한 선납금 비율 중 첫 번째를 기본값으로 설정
+        // 기본값 30% 선납금이 사용 가능한지 확인하고, 없으면 다른 것 선택
         const availableDeposits = DEPOSIT_RATIOS.filter(d => {
-          const fieldName = `rentPrice${period}_${d}` as keyof typeof data;
+          const fieldName = `rentPrice60_${d}` as keyof typeof data;
           const price = data[fieldName];
           return typeof price === 'number' && price > 0;
         });
-        if (availableDeposits.length > 0 && !availableDeposits.includes(0)) {
-          setDepositRatio(availableDeposits[0]);
+        if (availableDeposits.length > 0) {
+          // 30%가 사용 가능하면 30%, 아니면 첫 번째 사용 가능한 비율
+          if (availableDeposits.includes(30)) {
+            setDepositRatio(30);
+          } else {
+            setDepositRatio(availableDeposits[0]);
+          }
         }
       } catch (error) {
         console.error(error);

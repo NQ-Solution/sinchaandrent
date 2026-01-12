@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Copy, X, Car, GripVertical } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Copy, X, Car, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PriceInput } from '@/components/ui/PriceInput';
@@ -281,7 +281,7 @@ export default function EditVehiclePage() {
     setTrims([...trims, { name: '', price: 0, description: '', sortOrder: newSortOrder, isNew: true, colorIds: [], optionSettings: [] }]);
   };
 
-  const moveTrim = (index: number, direction: 'up' | 'down') => {
+  const _moveTrim = (index: number, direction: 'up' | 'down') => {
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= trims.length) return;
 
@@ -1487,28 +1487,6 @@ export default function EditVehiclePage() {
                             <div className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
                               <GripVertical className="w-5 h-5" />
                             </div>
-                            <div className="flex flex-col">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                disabled={index === 0}
-                                className="h-5 w-5 p-0"
-                                onClick={(e) => { e.stopPropagation(); moveTrim(index, 'up'); }}
-                              >
-                                <ArrowUp className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                disabled={index === trims.length - 1}
-                                className="h-5 w-5 p-0"
-                                onClick={(e) => { e.stopPropagation(); moveTrim(index, 'down'); }}
-                              >
-                                <ArrowDown className="w-3 h-3" />
-                              </Button>
-                            </div>
                             <div>
                               <div className="flex items-center gap-2">
                                 <p className="font-semibold">{trim.name || '새 트림'}</p>
@@ -1765,12 +1743,9 @@ export default function EditVehiclePage() {
                     {exteriorColors.map((color, index) => (
                       <div
                         key={color.id || `new-ext-${index}`}
-                        draggable
-                        onDragStart={(e) => handleExtColorDragStart(e, index)}
                         onDragOver={(e) => handleExtColorDragOver(e, index)}
-                        onDragEnd={handleExtColorDragEnd}
                         onDrop={(e) => handleExtColorDrop(e, index)}
-                        className={`flex gap-2 items-start p-4 rounded-lg cursor-move transition-all ${
+                        className={`flex gap-2 items-start p-4 rounded-lg transition-all ${
                           draggedExtColorIndex === index
                             ? 'opacity-50 bg-gray-100'
                             : dragOverExtColorIndex === index
@@ -1778,8 +1753,13 @@ export default function EditVehiclePage() {
                             : 'bg-gray-50 hover:bg-gray-100'
                         }`}
                       >
-                        <div className="flex items-center gap-2 mt-6">
-                          <GripVertical className="w-5 h-5 text-gray-400" />
+                        <div
+                          className="flex items-center gap-2 mt-6 cursor-grab active:cursor-grabbing"
+                          draggable
+                          onDragStart={(e) => handleExtColorDragStart(e, index)}
+                          onDragEnd={handleExtColorDragEnd}
+                        >
+                          <GripVertical className="w-5 h-5 text-gray-400 hover:text-gray-600" />
                           {index === 0 && (
                             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full whitespace-nowrap">
                               기본
@@ -1843,12 +1823,9 @@ export default function EditVehiclePage() {
                     {interiorColors.map((color, index) => (
                       <div
                         key={color.id || `new-int-${index}`}
-                        draggable
-                        onDragStart={(e) => handleIntColorDragStart(e, index)}
                         onDragOver={(e) => handleIntColorDragOver(e, index)}
-                        onDragEnd={handleIntColorDragEnd}
                         onDrop={(e) => handleIntColorDrop(e, index)}
-                        className={`flex gap-2 items-start p-4 rounded-lg cursor-move transition-all ${
+                        className={`flex gap-2 items-start p-4 rounded-lg transition-all ${
                           draggedIntColorIndex === index
                             ? 'opacity-50 bg-gray-100'
                             : dragOverIntColorIndex === index
@@ -1856,8 +1833,13 @@ export default function EditVehiclePage() {
                             : 'bg-gray-50 hover:bg-gray-100'
                         }`}
                       >
-                        <div className="flex items-center gap-2 mt-6">
-                          <GripVertical className="w-5 h-5 text-gray-400" />
+                        <div
+                          className="flex items-center gap-2 mt-6 cursor-grab active:cursor-grabbing"
+                          draggable
+                          onDragStart={(e) => handleIntColorDragStart(e, index)}
+                          onDragEnd={handleIntColorDragEnd}
+                        >
+                          <GripVertical className="w-5 h-5 text-gray-400 hover:text-gray-600" />
                           {index === 0 && (
                             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full whitespace-nowrap">
                               기본
@@ -1924,12 +1906,9 @@ export default function EditVehiclePage() {
                   {options.map((option, index) => (
                     <div
                       key={option.id || `new-${index}`}
-                      draggable
-                      onDragStart={(e) => handleOptionDragStart(e, index)}
                       onDragOver={(e) => handleOptionDragOver(e, index)}
-                      onDragEnd={handleOptionDragEnd}
                       onDrop={(e) => handleOptionDrop(e, index)}
-                      className={`flex gap-2 items-start p-4 rounded-lg cursor-move transition-all ${
+                      className={`flex gap-2 items-start p-4 rounded-lg transition-all ${
                         draggedOptionIndex === index
                           ? 'opacity-50 bg-gray-100'
                           : dragOverOptionIndex === index
@@ -1937,8 +1916,13 @@ export default function EditVehiclePage() {
                           : 'bg-gray-50 hover:bg-gray-100'
                       }`}
                     >
-                      <div className="flex items-center mt-6">
-                        <GripVertical className="w-5 h-5 text-gray-400" />
+                      <div
+                        className="flex items-center mt-6 cursor-grab active:cursor-grabbing"
+                        draggable
+                        onDragStart={(e) => handleOptionDragStart(e, index)}
+                        onDragEnd={handleOptionDragEnd}
+                      >
+                        <GripVertical className="w-5 h-5 text-gray-400 hover:text-gray-600" />
                       </div>
                       <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4">
                         <Input

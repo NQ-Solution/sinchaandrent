@@ -54,10 +54,6 @@ const nextConfig = {
       ],
     },
   ],
-  // standalone 빌드에 data 폴더 포함 (로컬 DB 모드용)
-  outputFileTracingIncludes: {
-    '/*': ['./data/**/*'],
-  },
   images: {
     remotePatterns: [
       // 자체 도메인
@@ -98,6 +94,10 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ['localhost:3000', '*.ngrok-free.app'],
       bodySizeLimit: '50mb', // 대용량 PDF 업로드 지원
+    },
+    // standalone 빌드에 data 폴더 포함 (로컬 DB 모드용)
+    outputFileTracingIncludes: {
+      '/*': ['./data/**/*'],
     },
   },
 };
