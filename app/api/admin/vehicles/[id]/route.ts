@@ -58,8 +58,6 @@ export async function GET(
       include: {
         brand: true,
         trims: { orderBy: { sortOrder: 'asc' } },
-        colors: { orderBy: { sortOrder: 'asc' } },
-        options: { orderBy: { sortOrder: 'asc' } },
         // 새 구조
         vehicleColors: {
           orderBy: { sortOrder: 'asc' },
@@ -101,8 +99,8 @@ export async function GET(
 
     const result = {
       ...vehicle,
-      colors: colorsFromNew.length > 0 ? colorsFromNew : vehicle.colors,
-      options: optionsFromNew.length > 0 ? optionsFromNew : vehicle.options,
+      colors: colorsFromNew,
+      options: optionsFromNew,
       vehicleColors: undefined,
       vehicleOptions: undefined,
     };

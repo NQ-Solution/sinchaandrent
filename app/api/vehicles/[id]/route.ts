@@ -41,13 +41,6 @@ export async function GET(
             },
           },
         },
-        // 기존 구조 (호환성 유지)
-        colors: {
-          orderBy: { sortOrder: 'asc' },
-        },
-        options: {
-          orderBy: { sortOrder: 'asc' },
-        },
         // 새 구조 (VehicleColor/VehicleOption)
         vehicleColors: {
           orderBy: { sortOrder: 'asc' },
@@ -95,9 +88,9 @@ export async function GET(
     // 트림별 색상과 옵션 정보를 포맷팅
     const formattedVehicle = {
       ...vehicle,
-      // 새 구조 데이터가 있으면 사용, 없으면 기존 데이터 사용
-      colors: colorsFromNew.length > 0 ? colorsFromNew : vehicle.colors,
-      options: optionsFromNew.length > 0 ? optionsFromNew : vehicle.options,
+      // 새 구조 데이터 사용
+      colors: colorsFromNew,
+      options: optionsFromNew,
       // 내부 필드 제거
       vehicleColors: undefined,
       vehicleOptions: undefined,
