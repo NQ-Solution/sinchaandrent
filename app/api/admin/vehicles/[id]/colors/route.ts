@@ -165,7 +165,7 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  _context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   if (!session) {
@@ -173,6 +173,7 @@ export async function PUT(
   }
 
   try {
+    const { id: vehicleId } = await params;
     const data = await request.json();
     const { colorId, ...updateData } = data;
 
@@ -192,13 +193,96 @@ export async function PUT(
     // VehicleColor 조회 (MasterColor 포함)
     const vehicleColor = await prisma.vehicleColor.findUnique({
       where: { id: colorId },
-      include: { masterColor: true },
+      include: { masterColor: true, vehicle: { select: { brandId: true } } },
     });
 
     if (!vehicleColor) {
       return NextResponse.json({ error: 'Color not found' }, { status: 404 });
     }
 
+    const currentName = vehicleColor.masterColor.name;
+    const newName = updateData.name?.trim();
+    const brandId = vehicleColor.vehicle.brandId;
+    const colorType = vehicleColor.masterColor.type;
+
+    // 이름이 변경된 경우 새 MasterColor로 연결 변경
+    if (newName && newName !== currentName) {
+      // 새 MasterColor 찾거나 생성
+      const newMasterColor = await prisma.masterColor.upsert({
+        where: {
+          brandId_type_name: {
+            brandId,
+            type: colorType,
+            name: newName,
+          },
+        },
+        create: {
+          brandId,
+          type: colorType,
+          name: newName,
+          hexCode: updateData.hexCode || vehicleColor.masterColor.hexCode,
+        },
+        update: {
+          hexCode: updateData.hexCode || undefined,
+        },
+      });
+
+      // 이미 같은 masterColorId로 연결된 VehicleColor가 있는지 확인
+      const existingConnection = await prisma.vehicleColor.findUnique({
+        where: {
+          vehicleId_masterColorId: {
+            vehicleId,
+            masterColorId: newMasterColor.id,
+          },
+        },
+      });
+
+      if (existingConnection && existingConnection.id !== colorId) {
+        // 이미 연결된 색상이 있으면 현재 색상 삭제하고 기존 것 업데이트
+        await prisma.vehicleColor.delete({ where: { id: colorId } });
+        const updatedExisting = await prisma.vehicleColor.update({
+          where: { id: existingConnection.id },
+          data: {
+            price: updateData.price ?? existingConnection.price,
+            sortOrder: updateData.sortOrder ?? existingConnection.sortOrder,
+          },
+        });
+
+        return NextResponse.json({
+          id: updatedExisting.id,
+          vehicleId: updatedExisting.vehicleId,
+          masterColorId: newMasterColor.id,
+          type: newMasterColor.type,
+          name: newMasterColor.name,
+          hexCode: newMasterColor.hexCode,
+          price: updatedExisting.price,
+          sortOrder: updatedExisting.sortOrder,
+        });
+      }
+
+      // VehicleColor의 masterColorId 업데이트
+      const updatedVehicleColor = await prisma.vehicleColor.update({
+        where: { id: colorId },
+        data: {
+          masterColorId: newMasterColor.id,
+          price: updateData.price,
+          sortOrder: updateData.sortOrder,
+        },
+      });
+
+      return NextResponse.json({
+        id: updatedVehicleColor.id,
+        vehicleId: updatedVehicleColor.vehicleId,
+        masterColorId: newMasterColor.id,
+        type: newMasterColor.type,
+        name: newMasterColor.name,
+        hexCode: newMasterColor.hexCode,
+        price: updatedVehicleColor.price,
+        sortOrder: updatedVehicleColor.sortOrder,
+      });
+    }
+
+    // 이름 변경이 없는 경우 기존 로직
     // 차량별 정보 업데이트 (가격, 정렬순서)
     const updatedVehicleColor = await prisma.vehicleColor.update({
       where: { id: colorId },

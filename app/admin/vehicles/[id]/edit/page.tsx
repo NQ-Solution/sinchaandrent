@@ -952,7 +952,64 @@ export default function EditVehiclePage() {
         await fetch(`/api/admin/vehicles/${id}/options?optionId=${optionId}`, { method: 'DELETE' });
       }
 
-      // 3. Create/Update trims
+      // 3. Create/Update colors FIRST (트림 연결 전에)
+      // 임시 ID -> 새 ID 맵핑 저장
+      const colorIdMap = new Map<number, string>(); // index -> new id
+      const allColors = [...exteriorColors, ...interiorColors];
+      for (let i = 0; i < allColors.length; i++) {
+        const color = allColors[i];
+        if (color.isNew) {
+          const res = await fetch(`/api/admin/vehicles/${id}/colors`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(color),
+          });
+          if (res.ok) {
+            const createdColor = await res.json();
+            colorIdMap.set(i, createdColor.id);
+          }
+        } else if (color.id) {
+          await fetch(`/api/admin/vehicles/${id}/colors`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ colorId: color.id, ...color }),
+          });
+        }
+      }
+
+      // 4. Create/Update options SECOND (트림 연결 전에)
+      // 임시 ID -> 새 ID 맵핑 저장
+      const optionIdMap = new Map<number, string>(); // index -> new id
+      for (let i = 0; i < options.length; i++) {
+        const option = options[i];
+        if (option.isNew) {
+          const res = await fetch(`/api/admin/vehicles/${id}/options`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(option),
+          });
+          if (res.ok) {
+            const createdOption = await res.json();
+            optionIdMap.set(i, createdOption.id);
+          }
+        } else if (option.id) {
+          await fetch(`/api/admin/vehicles/${id}/options`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ optionId: option.id, ...option }),
+          });
+        }
+      }
+
+      // 5. 데이터 새로고침 (새로 생성된 색상/옵션 ID 가져오기)
+      const [freshColorsRes, freshOptionsRes] = await Promise.all([
+        fetch(`/api/admin/vehicles/${id}/colors`),
+        fetch(`/api/admin/vehicles/${id}/options`),
+      ]);
+      const freshColors: ColorData[] = await freshColorsRes.json();
+      const freshOptions: OptionData[] = await freshOptionsRes.json();
+
+      // 6. Create/Update trims
       for (const trim of trims) {
         let trimId = trim.id;
 
@@ -984,62 +1041,70 @@ export default function EditVehiclePage() {
           });
         }
 
-        // 트림별 색상 연결
+        // 트림별 색상 연결 (최신 색상 ID 사용)
         if (trimId && trim.colorIds) {
+          // 색상 이름으로 매칭하여 최신 ID 찾기
+          const updatedColorIds = trim.colorIds.map(oldColorId => {
+            // 기존 색상 ID가 freshColors에 있으면 그대로 사용
+            const existingColor = freshColors.find(c => c.id === oldColorId);
+            if (existingColor) return oldColorId;
+
+            // 없으면 이름으로 매칭 시도
+            const originalColorIndex = allColors.findIndex(c => c.id === oldColorId);
+            if (originalColorIndex >= 0) {
+              const originalColor = allColors[originalColorIndex];
+              const matchedFreshColor = freshColors.find(
+                c => c.type === originalColor.type && c.name === originalColor.name
+              );
+              if (matchedFreshColor) return matchedFreshColor.id;
+            }
+            return oldColorId;
+          }).filter(Boolean);
+
           await fetch(`/api/admin/vehicles/${id}/trims/${trimId}/colors`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ colorIds: trim.colorIds }),
+            body: JSON.stringify({ colorIds: updatedColorIds }),
           });
         }
 
-        // 트림별 옵션 연결
+        // 트림별 옵션 연결 (최신 옵션 ID 사용)
         if (trimId && trim.optionSettings) {
+          const updatedOptionSettings = trim.optionSettings.map(s => {
+            // 기존 옵션 ID가 freshOptions에 있으면 그대로 사용
+            const existingOption = freshOptions.find(o => o.id === s.optionId);
+            if (existingOption) {
+              return {
+                optionId: s.optionId,
+                isIncluded: s.isIncluded,
+                price: s.price,
+              };
+            }
+
+            // 없으면 이름으로 매칭 시도
+            const originalOptionIndex = options.findIndex(o => o.id === s.optionId);
+            if (originalOptionIndex >= 0) {
+              const originalOption = options[originalOptionIndex];
+              const matchedFreshOption = freshOptions.find(o => o.name === originalOption.name);
+              if (matchedFreshOption) {
+                return {
+                  optionId: matchedFreshOption.id,
+                  isIncluded: s.isIncluded,
+                  price: s.price,
+                };
+              }
+            }
+            return {
+              optionId: s.optionId,
+              isIncluded: s.isIncluded,
+              price: s.price,
+            };
+          }).filter(s => freshOptions.some(o => o.id === s.optionId));
+
           await fetch(`/api/admin/vehicles/${id}/trims/${trimId}/options`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              options: trim.optionSettings.map(s => ({
-                optionId: s.optionId,
-                isIncluded: s.isIncluded,
-                price: s.price, // 트림별 개별 가격
-              })),
-            }),
-          });
-        }
-      }
-
-      // 4. Create/Update colors
-      const allColors = [...exteriorColors, ...interiorColors];
-      for (const color of allColors) {
-        if (color.isNew) {
-          await fetch(`/api/admin/vehicles/${id}/colors`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(color),
-          });
-        } else if (color.id) {
-          await fetch(`/api/admin/vehicles/${id}/colors`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ colorId: color.id, ...color }),
-          });
-        }
-      }
-
-      // 5. Create/Update options
-      for (const option of options) {
-        if (option.isNew) {
-          await fetch(`/api/admin/vehicles/${id}/options`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(option),
-          });
-        } else if (option.id) {
-          await fetch(`/api/admin/vehicles/${id}/options`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ optionId: option.id, ...option }),
+            body: JSON.stringify({ options: updatedOptionSettings }),
           });
         }
       }

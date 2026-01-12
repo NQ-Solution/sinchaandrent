@@ -165,7 +165,7 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  _context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   if (!session) {
@@ -173,6 +173,7 @@ export async function PUT(
   }
 
   try {
+    const { id: vehicleId } = await params;
     const data = await request.json();
     const { optionId, ...updateData } = data;
 
@@ -192,13 +193,100 @@ export async function PUT(
     // VehicleOption 조회 (MasterOption 포함)
     const vehicleOption = await prisma.vehicleOption.findUnique({
       where: { id: optionId },
-      include: { masterOption: true },
+      include: { masterOption: true, vehicle: { select: { brandId: true } } },
     });
 
     if (!vehicleOption) {
       return NextResponse.json({ error: 'Option not found' }, { status: 404 });
     }
 
+    const currentName = vehicleOption.masterOption.name;
+    const newName = updateData.name?.trim();
+    const brandId = vehicleOption.vehicle.brandId;
+
+    // 이름이 변경된 경우 새 MasterOption으로 연결 변경
+    if (newName && newName !== currentName) {
+      // 새 MasterOption 찾거나 생성
+      const newMasterOption = await prisma.masterOption.upsert({
+        where: {
+          brandId_name: {
+            brandId,
+            name: newName,
+          },
+        },
+        create: {
+          brandId,
+          name: newName,
+          description: updateData.description ?? vehicleOption.masterOption.description,
+          category: updateData.category ?? vehicleOption.masterOption.category,
+        },
+        update: {
+          description: updateData.description || undefined,
+          category: updateData.category || undefined,
+        },
+      });
+
+      // 이미 같은 masterOptionId로 연결된 VehicleOption이 있는지 확인
+      const existingConnection = await prisma.vehicleOption.findUnique({
+        where: {
+          vehicleId_masterOptionId: {
+            vehicleId,
+            masterOptionId: newMasterOption.id,
+          },
+        },
+      });
+
+      if (existingConnection && existingConnection.id !== optionId) {
+        // 이미 연결된 옵션이 있으면 현재 옵션 삭제하고 기존 것 업데이트
+        // TrimOption 연결 이전
+        await prisma.trimOption.updateMany({
+          where: { vehicleOptionId: optionId },
+          data: { vehicleOptionId: existingConnection.id },
+        });
+        await prisma.vehicleOption.delete({ where: { id: optionId } });
+        const updatedExisting = await prisma.vehicleOption.update({
+          where: { id: existingConnection.id },
+          data: {
+            price: updateData.price ?? existingConnection.price,
+            sortOrder: updateData.sortOrder ?? existingConnection.sortOrder,
+          },
+        });
+
+        return NextResponse.json({
+          id: updatedExisting.id,
+          vehicleId: updatedExisting.vehicleId,
+          masterOptionId: newMasterOption.id,
+          name: newMasterOption.name,
+          description: newMasterOption.description,
+          category: newMasterOption.category,
+          price: updatedExisting.price,
+          sortOrder: updatedExisting.sortOrder,
+        });
+      }
+
+      // VehicleOption의 masterOptionId 업데이트
+      const updatedVehicleOption = await prisma.vehicleOption.update({
+        where: { id: optionId },
+        data: {
+          masterOptionId: newMasterOption.id,
+          price: updateData.price,
+          sortOrder: updateData.sortOrder,
+        },
+      });
+
+      return NextResponse.json({
+        id: updatedVehicleOption.id,
+        vehicleId: updatedVehicleOption.vehicleId,
+        masterOptionId: newMasterOption.id,
+        name: newMasterOption.name,
+        description: newMasterOption.description,
+        category: newMasterOption.category,
+        price: updatedVehicleOption.price,
+        sortOrder: updatedVehicleOption.sortOrder,
+      });
+    }
+
+    // 이름 변경이 없는 경우 기존 로직
     // 차량별 정보 업데이트 (가격, 정렬순서)
     const updatedVehicleOption = await prisma.vehicleOption.update({
       where: { id: optionId },
