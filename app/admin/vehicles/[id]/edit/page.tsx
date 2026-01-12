@@ -82,6 +82,14 @@ export default function EditVehiclePage() {
   const [selectedTrimIndex, setSelectedTrimIndex] = useState<number | null>(null);
   const [draggedTrimIndex, setDraggedTrimIndex] = useState<number | null>(null);
   const [dragOverTrimIndex, setDragOverTrimIndex] = useState<number | null>(null);
+  // 색상 드래그 앤 드롭 상태
+  const [draggedExtColorIndex, setDraggedExtColorIndex] = useState<number | null>(null);
+  const [dragOverExtColorIndex, setDragOverExtColorIndex] = useState<number | null>(null);
+  const [draggedIntColorIndex, setDraggedIntColorIndex] = useState<number | null>(null);
+  const [dragOverIntColorIndex, setDragOverIntColorIndex] = useState<number | null>(null);
+  // 옵션 드래그 앤 드롭 상태
+  const [draggedOptionIndex, setDraggedOptionIndex] = useState<number | null>(null);
+  const [dragOverOptionIndex, setDragOverOptionIndex] = useState<number | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
 
   // Basic info
@@ -424,7 +432,7 @@ export default function EditVehiclePage() {
     }
   };
 
-  const moveColor = (type: 'EXTERIOR' | 'INTERIOR', index: number, direction: 'up' | 'down') => {
+  const _moveColor = (type: 'EXTERIOR' | 'INTERIOR', index: number, direction: 'up' | 'down') => {
     const colors = type === 'EXTERIOR' ? [...exteriorColors] : [...interiorColors];
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= colors.length) return;
@@ -443,6 +451,82 @@ export default function EditVehiclePage() {
     } else {
       setInteriorColors(colors);
     }
+  };
+
+  // 외장색 드래그 앤 드롭 핸들러
+  const handleExtColorDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedExtColorIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleExtColorDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedExtColorIndex !== null && draggedExtColorIndex !== index) {
+      setDragOverExtColorIndex(index);
+    }
+  };
+
+  const handleExtColorDragEnd = () => {
+    setDraggedExtColorIndex(null);
+    setDragOverExtColorIndex(null);
+  };
+
+  const handleExtColorDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedExtColorIndex === null || draggedExtColorIndex === targetIndex) {
+      handleExtColorDragEnd();
+      return;
+    }
+
+    const newColors = [...exteriorColors];
+    const [draggedItem] = newColors.splice(draggedExtColorIndex, 1);
+    newColors.splice(targetIndex, 0, draggedItem);
+
+    // sortOrder 재정렬
+    newColors.forEach((color, idx) => {
+      color.sortOrder = idx;
+    });
+
+    setExteriorColors(newColors);
+    handleExtColorDragEnd();
+  };
+
+  // 내장색 드래그 앤 드롭 핸들러
+  const handleIntColorDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIntColorIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleIntColorDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIntColorIndex !== null && draggedIntColorIndex !== index) {
+      setDragOverIntColorIndex(index);
+    }
+  };
+
+  const handleIntColorDragEnd = () => {
+    setDraggedIntColorIndex(null);
+    setDragOverIntColorIndex(null);
+  };
+
+  const handleIntColorDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIntColorIndex === null || draggedIntColorIndex === targetIndex) {
+      handleIntColorDragEnd();
+      return;
+    }
+
+    const newColors = [...interiorColors];
+    const [draggedItem] = newColors.splice(draggedIntColorIndex, 1);
+    newColors.splice(targetIndex, 0, draggedItem);
+
+    // sortOrder 재정렬
+    newColors.forEach((color, idx) => {
+      color.sortOrder = idx;
+    });
+
+    setInteriorColors(newColors);
+    handleIntColorDragEnd();
   };
 
   const updateColor = (type: 'EXTERIOR' | 'INTERIOR', index: number, field: keyof ColorData, value: string | number) => {
@@ -479,7 +563,7 @@ export default function EditVehiclePage() {
     setOptions([...options, { name: '', price: 0, description: '', category: '편의', sortOrder: newSortOrder, isNew: true }]);
   };
 
-  const moveOption = (index: number, direction: 'up' | 'down') => {
+  const _moveOption = (index: number, direction: 'up' | 'down') => {
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= options.length) return;
 
@@ -494,6 +578,44 @@ export default function EditVehiclePage() {
     });
 
     setOptions(newOptions);
+  };
+
+  // 옵션 드래그 앤 드롭 핸들러
+  const handleOptionDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedOptionIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleOptionDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedOptionIndex !== null && draggedOptionIndex !== index) {
+      setDragOverOptionIndex(index);
+    }
+  };
+
+  const handleOptionDragEnd = () => {
+    setDraggedOptionIndex(null);
+    setDragOverOptionIndex(null);
+  };
+
+  const handleOptionDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedOptionIndex === null || draggedOptionIndex === targetIndex) {
+      handleOptionDragEnd();
+      return;
+    }
+
+    const newOptions = [...options];
+    const [draggedItem] = newOptions.splice(draggedOptionIndex, 1);
+    newOptions.splice(targetIndex, 0, draggedItem);
+
+    // sortOrder 재정렬
+    newOptions.forEach((option, idx) => {
+      option.sortOrder = idx;
+    });
+
+    setOptions(newOptions);
+    handleOptionDragEnd();
   };
 
   const updateOption = (index: number, field: keyof OptionData, value: string | number) => {
@@ -1639,30 +1761,30 @@ export default function EditVehiclePage() {
                 {exteriorColors.length === 0 ? (
                   <p className="text-gray-500 text-center py-4">등록된 외장색이 없습니다.</p>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     {exteriorColors.map((color, index) => (
-                      <div key={color.id || `new-ext-${index}`} className="flex gap-2 items-start p-4 bg-gray-50 rounded-lg">
-                        <div className="flex flex-col mt-6">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={index === 0}
-                            className="h-6 w-6 p-0"
-                            onClick={() => moveColor('EXTERIOR', index, 'up')}
-                          >
-                            <ArrowUp className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={index === exteriorColors.length - 1}
-                            className="h-6 w-6 p-0"
-                            onClick={() => moveColor('EXTERIOR', index, 'down')}
-                          >
-                            <ArrowDown className="w-3 h-3" />
-                          </Button>
+                      <div
+                        key={color.id || `new-ext-${index}`}
+                        draggable
+                        onDragStart={(e) => handleExtColorDragStart(e, index)}
+                        onDragOver={(e) => handleExtColorDragOver(e, index)}
+                        onDragEnd={handleExtColorDragEnd}
+                        onDrop={(e) => handleExtColorDrop(e, index)}
+                        className={`flex gap-2 items-start p-4 rounded-lg cursor-move transition-all ${
+                          draggedExtColorIndex === index
+                            ? 'opacity-50 bg-gray-100'
+                            : dragOverExtColorIndex === index
+                            ? 'bg-primary/10 border-2 border-primary border-dashed'
+                            : 'bg-gray-50 hover:bg-gray-100'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mt-6">
+                          <GripVertical className="w-5 h-5 text-gray-400" />
+                          {index === 0 && (
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full whitespace-nowrap">
+                              기본
+                            </span>
+                          )}
                         </div>
                         <div
                           className="w-10 h-10 rounded-lg border-2 border-gray-200 mt-6 flex-shrink-0"
@@ -1717,30 +1839,30 @@ export default function EditVehiclePage() {
                 {interiorColors.length === 0 ? (
                   <p className="text-gray-500 text-center py-4">등록된 내장색이 없습니다.</p>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     {interiorColors.map((color, index) => (
-                      <div key={color.id || `new-int-${index}`} className="flex gap-2 items-start p-4 bg-gray-50 rounded-lg">
-                        <div className="flex flex-col mt-6">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={index === 0}
-                            className="h-6 w-6 p-0"
-                            onClick={() => moveColor('INTERIOR', index, 'up')}
-                          >
-                            <ArrowUp className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={index === interiorColors.length - 1}
-                            className="h-6 w-6 p-0"
-                            onClick={() => moveColor('INTERIOR', index, 'down')}
-                          >
-                            <ArrowDown className="w-3 h-3" />
-                          </Button>
+                      <div
+                        key={color.id || `new-int-${index}`}
+                        draggable
+                        onDragStart={(e) => handleIntColorDragStart(e, index)}
+                        onDragOver={(e) => handleIntColorDragOver(e, index)}
+                        onDragEnd={handleIntColorDragEnd}
+                        onDrop={(e) => handleIntColorDrop(e, index)}
+                        className={`flex gap-2 items-start p-4 rounded-lg cursor-move transition-all ${
+                          draggedIntColorIndex === index
+                            ? 'opacity-50 bg-gray-100'
+                            : dragOverIntColorIndex === index
+                            ? 'bg-primary/10 border-2 border-primary border-dashed'
+                            : 'bg-gray-50 hover:bg-gray-100'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mt-6">
+                          <GripVertical className="w-5 h-5 text-gray-400" />
+                          {index === 0 && (
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full whitespace-nowrap">
+                              기본
+                            </span>
+                          )}
                         </div>
                         <div
                           className="w-10 h-10 rounded-lg border-2 border-gray-200 mt-6 flex-shrink-0"
@@ -1798,30 +1920,25 @@ export default function EditVehiclePage() {
               {options.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">등록된 옵션이 없습니다.</p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {options.map((option, index) => (
-                    <div key={option.id || `new-${index}`} className="flex gap-2 items-start p-4 bg-gray-50 rounded-lg">
-                      <div className="flex flex-col mt-6">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          disabled={index === 0}
-                          className="h-6 w-6 p-0"
-                          onClick={() => moveOption(index, 'up')}
-                        >
-                          <ArrowUp className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          disabled={index === options.length - 1}
-                          className="h-6 w-6 p-0"
-                          onClick={() => moveOption(index, 'down')}
-                        >
-                          <ArrowDown className="w-3 h-3" />
-                        </Button>
+                    <div
+                      key={option.id || `new-${index}`}
+                      draggable
+                      onDragStart={(e) => handleOptionDragStart(e, index)}
+                      onDragOver={(e) => handleOptionDragOver(e, index)}
+                      onDragEnd={handleOptionDragEnd}
+                      onDrop={(e) => handleOptionDrop(e, index)}
+                      className={`flex gap-2 items-start p-4 rounded-lg cursor-move transition-all ${
+                        draggedOptionIndex === index
+                          ? 'opacity-50 bg-gray-100'
+                          : dragOverOptionIndex === index
+                          ? 'bg-primary/10 border-2 border-primary border-dashed'
+                          : 'bg-gray-50 hover:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center mt-6">
+                        <GripVertical className="w-5 h-5 text-gray-400" />
                       </div>
                       <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4">
                         <Input
