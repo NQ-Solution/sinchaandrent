@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Phone, Youtube, MessageCircle, X } from 'lucide-react';
+import { handlePhoneClick } from '@/lib/utils';
 
 // 카카오톡 공식 아이콘 (SVG)
 function KakaoIcon({ className }: { className?: string }) {
@@ -151,7 +152,10 @@ export function FloatingCTA() {
               aria-label="전화 상담"
               onMouseEnter={() => setShowPhoneTooltip(true)}
               onMouseLeave={() => setShowPhoneTooltip(false)}
-              onClick={() => setShowPhoneTooltip(false)}
+              onClick={(e) => {
+                setShowPhoneTooltip(false);
+                handlePhoneClick(e, phoneNumber);
+              }}
             >
               <Phone className="w-5 h-5" />
             </a>

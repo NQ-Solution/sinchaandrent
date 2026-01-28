@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Phone, Youtube, FileText, Building2, ExternalLink, BookOpen } from 'lucide-react';
 import { KakaoIcon } from '@/components/icons/KakaoIcon';
+import { handlePhoneClick } from '@/lib/utils';
 
 interface LoanBrokerDocument {
   name: string;
@@ -91,6 +92,7 @@ export function Footer() {
                 href={`tel:${phoneNumber}`}
                 className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary transition-colors"
                 aria-label="전화 상담"
+                onClick={(e) => handlePhoneClick(e, phoneNumber)}
               >
                 <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
               </a>
@@ -161,7 +163,11 @@ export function Footer() {
                 {isLoading ? (
                   <span className="text-gray-500">로딩 중...</span>
                 ) : phoneNumber ? (
-                  <a href={`tel:${phoneNumber}`} className="hover:text-white transition-colors">
+                  <a
+                    href={`tel:${phoneNumber}`}
+                    className="hover:text-white transition-colors"
+                    onClick={(e) => handlePhoneClick(e, phoneNumber)}
+                  >
                     {phoneNumber}
                   </a>
                 ) : (

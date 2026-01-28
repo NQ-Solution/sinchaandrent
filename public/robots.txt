@@ -1,0 +1,24 @@
+# robots.txt for 신차앤렌트
+# https://www.sincharent.co.kr
+
+User-agent: *
+Allow: /
+
+# Favicon 접근 허용 (네이버, 구글 등 검색 엔진 수집용)
+Allow: /favicon.svg
+Allow: /favicon.ico
+Allow: /favicon.png
+Allow: /favicon-*.png
+Allow: /apple-touch-icon.png
+Allow: /logo.png
+
+# Sitemap (필요시 주석 해제)
+# Sitemap: https://www.sincharent.co.kr/sitemap.xml
+
+# 네이버 검색로봇
+User-agent: Yeti
+Allow: /
+
+# 구글 검색로봇
+User-agent: Googlebot
+Allow: /

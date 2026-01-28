@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Menu, X, Phone } from 'lucide-react';
 import { useUIStore } from '@/stores/ui';
-import { cn } from '@/lib/utils';
+import { cn, handlePhoneClick } from '@/lib/utils';
 
 interface CompanyInfo {
   phone?: string;
@@ -109,6 +109,7 @@ export function Header() {
             <a
               href={`tel:${phoneNumber}`}
               className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-full font-medium hover:bg-primary/90 transition-colors"
+              onClick={(e) => handlePhoneClick(e, phoneNumber)}
             >
               <Phone className="w-4 h-4" />
               <span>전화상담</span>
@@ -150,6 +151,7 @@ export function Header() {
             <a
               href={`tel:${phoneNumber}`}
               className="flex items-center gap-2 mx-4 mt-3 bg-primary text-white px-4 py-3 rounded-lg font-medium justify-center"
+              onClick={(e) => handlePhoneClick(e, phoneNumber)}
             >
               <Phone className="w-4 h-4" />
               <span>전화상담</span>

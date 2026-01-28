@@ -34,10 +34,30 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     siteName: "신차앤렌트",
   },
+  // 파비콘 설정 (네이버/구글 검색 최적화)
+  // 우선순위: shortcut icon > icon > apple-touch-icon
   icons: {
-    icon: { url: '/favicon.svg', type: 'image/svg+xml' },
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    // 기본 아이콘 (여러 크기 지원)
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-32x32.png', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon-16x16.png', type: 'image/png', sizes: '16x16' },
+    ],
+    // 단축 아이콘 (레거시 브라우저 지원)
+    shortcut: '/favicon.ico',
+    // Apple 터치 아이콘
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  // 추가 메타데이터
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
   },
 };
 
@@ -54,6 +74,16 @@ export default function RootLayout({
 
         {/* ===== 구글 서치 콘솔 사이트 인증 메타 태그 ===== */}
         {/* <meta name="google-site-verification" content="여기에_인증코드_입력" /> */}
+
+        {/* ===== 파비콘 (네이버/구글 검색 최적화) ===== */}
+        {/* 절대 경로로 명시적 선언 - 네이버 로봇 수집 최적화 */}
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="shortcut icon" href="/favicon.ico" />
       </head>
 
       {/* ===== 구글 애널리틱스 (GA4) ===== */}
